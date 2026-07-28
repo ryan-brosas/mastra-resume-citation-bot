@@ -18,14 +18,14 @@
     "ask": "node --experimental-strip-types scripts/ask.ts"
   },
   "dependencies": {
-    "@mastra/core": "1.52.1",
-    "@mastra/libsql": "1.17.0",
+    "@mastra/core": "1.53.0",
+    "@mastra/libsql": "1.17.1",
     "@mastra/loggers": "1.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^25.2.3",
-    "mastra": "1.20.1",
+    "mastra": "1.20.2",
     "typescript": "^5.9.3"
   }
 }
