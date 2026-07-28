@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.3.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install PDF tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes poppler-utils
+
+      - name: Require Chromium for browser tests
+        shell: bash
+        run: |
+          chrome="$(command -v google-chrome-stable || command -v google-chrome || command -v chromium || true)"
+          test -n "$chrome"
+          mkdir -p "$HOME/.cache/ms-playwright/chromium-1234/chrome-linux64"
+          ln -s "$chrome" "$HOME/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome"
+          test -x "$HOME/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome"
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Verify citation assets
+        run: pnpm citations:verify
+
+      - name: Build
+        run: pnpm build
