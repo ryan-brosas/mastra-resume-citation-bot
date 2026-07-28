@@ -48,8 +48,9 @@ enforced at query time, not only by the CLI:
 | Model cites a real passage it was never shown | marker stripped |
 | Model emits its own `[1]`-style marker | marker stripped |
 
-At the public boundary these become one of `invalid_question`, `manifest_unavailable`,
-`retrieval_failed`, or `model_failed` — never a stack trace or partial answer.
+At the public boundary these become one of `invalid_question`, `unresolved_followup`,
+`payload_too_large`, `manifest_unavailable`, `retrieval_failed`, or `model_failed` — never a stack
+trace or partial answer.
 
 ## Usage
 
@@ -75,9 +76,10 @@ Each citation renders as a clipped, highlighted crop of the actual PDF page. Pag
 by Poppler at 144 DPI and hash-bound to the source like every other artifact, and `GET /ask/page/:page`
 serves them only after `trustedManifest()` has confirmed the render matches its recorded hash.
 
-`POST /ask/answer` takes `{ "question": "…" }` and returns `{ answer, citations, version, pages }`, or
-`{ code }` with 400 (`invalid_question`), 502 (`model_failed`), or 503 (`manifest_unavailable`,
-`retrieval_failed`). Internals never cross that boundary.
+`POST /ask/answer` takes `{ "question": "…", "history": […] }` and returns
+`{ answer, citations, pages, unsupported, version }`, or `{ code }` with 400 (`invalid_question`),
+413 (`payload_too_large`), 422 (`unresolved_followup`), 502 (`model_failed`), or 503
+(`manifest_unavailable`, `retrieval_failed`). Internals never cross that boundary.
 
 Paths resolve from the project root, located by walking up from the working directory — `mastra build`
 relocates modules into `.mastra/output` and the dev server chdirs into `src/mastra/public`, so neither
@@ -90,15 +92,17 @@ Index a different PDF:
 pnpm citations:build path/to/document.pdf
 ```
 
-Indexing verifies the new manifest, embeds it, replaces the document's vectors, and only then
-publishes. Publishing is what makes a manifest answerable, so a failure at any earlier step leaves
-the previously published document answerable rather than exposing a manifest with no vectors behind
-it. That ordering is covered by `tests/indexing.test.ts`.
+Indexing first verifies the new manifest. If it fits `CONTEXT_BUDGET_CHARS`, it is published
+without embeddings because answers will receive it whole. A larger manifest is embedded, its vectors
+are replaced, and only then is it published. Publishing is what makes a manifest answerable, so a
+failure before publication leaves the previous document answerable rather than exposing a manifest
+without the vectors its retrieval path needs. Both branches and that ordering are covered by
+`tests/indexing.test.ts`.
 
-Vectors are keyed by citation id, so re-indexing overwrites in place instead of duplicating.
-Superseded vectors are removed with `deleteFilter` on the upsert, which `@mastra/core` documents as
-delete-and-insert in a single transaction — that atomicity is an upstream guarantee this project
-relies on but does not itself test.
+For larger manifests, vectors are keyed by citation id, so re-indexing overwrites in place instead of
+duplicating. Superseded vectors are removed with `deleteFilter` on the upsert, which `@mastra/core`
+documents as delete-and-insert in a single transaction — that atomicity is an upstream guarantee this
+project relies on but does not itself test.
 
 ## Models
 
