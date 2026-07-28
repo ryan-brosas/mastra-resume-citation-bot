@@ -16,6 +16,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Node 22 reports --experimental-strip-types on stderr; CLI tests reserve stderr for app failures.
+      NODE_NO_WARNINGS: "1"
 
     steps:
       - uses: actions/checkout@v4
