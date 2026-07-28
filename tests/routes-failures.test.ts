@@ -22,6 +22,9 @@ function context(
   return {
     captured,
     c: {
+      header: () => undefined,
+      body: (body: BodyInit | null, status = 200, headers?: HeadersInit) =>
+        new Response(body, { status, headers }),
       html: (body: string) => new Response(body),
       json: (body: unknown, status = 200) => {
         captured.json = body;

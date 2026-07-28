@@ -16,6 +16,9 @@ function context(options: { param?: Record<string, string>; query?: Record<strin
   return {
     captured,
     c: {
+      header: () => undefined,
+      body: (body: BodyInit | null, status = 200, headers?: HeadersInit) =>
+        new Response(body, { status, headers }),
       html: (body: string) => {
         captured.html = body;
         captured.status = 200;
@@ -64,6 +67,7 @@ test('every public route applies the browser security policy', async () => {
   ];
 
   for (const [name, response] of responses) {
+    assert.equal(response.headers.get('cache-control'), 'no-store', name);
     assert.equal(response.headers.get('x-content-type-options'), 'nosniff', name);
     assert.equal(response.headers.get('x-frame-options'), 'DENY', name);
     assert.equal(response.headers.get('referrer-policy'), 'no-referrer', name);

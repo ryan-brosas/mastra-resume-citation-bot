@@ -14,6 +14,15 @@ after(async () => {
   await rm(scratch, { recursive: true, force: true });
 });
 
+function context(extra: Record<string, unknown> = {}) {
+  return {
+    header: () => undefined,
+    json: (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } }),
+    ...extra,
+  };
+}
+
 function route(path: string) {
   const found = (askRoutes as any[]).find((entry) => entry.path === path && entry.method === 'GET');
   assert.ok(found !== undefined);
@@ -22,16 +31,16 @@ function route(path: string) {
 
 test('missing UI assets fail closed with a stable code instead of an unhandled error', async () => {
   for (const path of ['/ask/app.css', '/ask/app.js']) {
-    const response: Response = await route(path).handler({});
+    const response: Response = await route(path).handler(context());
     assert.equal(response.status, 503, `${path} must fail closed`);
     assert.deepEqual(await response.json(), { code: 'asset_unavailable' });
   }
 });
 
 test('a missing page shell fails closed rather than throwing', async () => {
-  const response: Response = await route('/ask').handler({
+  const response: Response = await route('/ask').handler(context({
     html: () => assert.fail('the shell must not be rendered when it cannot be read'),
-  });
+  }));
 
   assert.equal(response.status, 503);
   assert.deepEqual(await response.json(), { code: 'asset_unavailable' });

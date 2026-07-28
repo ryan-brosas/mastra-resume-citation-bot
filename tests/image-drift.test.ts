@@ -59,6 +59,7 @@ test('bytes that changed after verification are refused rather than served', asy
   const page = routes.find((entry) => entry.path === '/ask/page/:page' && entry.method === 'GET');
 
   await page.handler({
+    header: () => undefined,
     json: (body: unknown, status = 200) => {
       captured.json = body;
       captured.status = status;
