@@ -1,9 +1,17 @@
 # Ryan's Resume Bot
 
+[![CI](https://github.com/ryan-brosas/mastra-resume-citation-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/ryan-brosas/mastra-resume-citation-bot/actions/workflows/ci.yml)
+
 A Mastra application that answers questions about a résumé and can only cite passages that actually exist in it.
 
 The core rule: **a generated citation is never trusted.** Every citation the model emits is re-resolved
 against a source-bound manifest, and anything unresolvable is stripped before the answer reaches a caller.
+
+> [!IMPORTANT]
+> This repository contains the real résumé and personal contact details in three forms:
+> `documents/sample.pdf`, `src/citations/generated/manifest.v1.json`, and the rendered PNGs under
+> `src/citations/generated/pages/`. Keep the repository private unless all three are replaced and
+> rebuilt from a redacted source. Removing only the PDF does not remove the extracted or rendered data.
 
 ## How it works
 
