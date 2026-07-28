@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ryan's Resume Bot</title>
+<link rel="stylesheet" href="ask/app.css" />
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1>Ryan's Resume Bot</h1>
+      <p id="doc" class="doc"></p>
+    </div>
+  </header>
+
+  <main id="thread" class="thread" tabindex="-1">
+    <div class="stream" id="stream" aria-live="polite" aria-busy="false">
+      <section class="welcome" id="welcome">
+        <h2>Ask about Ryan's work.</h2>
+        <p>Answers come with the part of the résumé they were taken from.</p>
+        <div class="suggestions" id="suggestions"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="composer-dock">
+    <form id="form" class="composer" autocomplete="off">
+      <textarea id="question" rows="1" maxlength="1000" placeholder="Ask a question…"
+        aria-label="Question about the résumé" enterkeyhint="send"></textarea>
+      <button id="submit" type="submit" aria-label="Send question">
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 19V5M12 5l-6 6M12 5l6 6" fill="none" stroke="currentColor"
+                stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </form>
+    <p class="foot">Enter to send · Shift + Enter for a new line</p>
+  </div>
+</div>
+<script src="ask/app.js"></script>
+</body>
+</html>

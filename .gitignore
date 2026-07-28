@@ -1,0 +1,15 @@
+node_modules/
+.mastra/
+
+# Local vector store and Mastra runtime storage
+mastra.db
+mastra.db-shm
+mastra.db-wal
+src/mastra/public/mastra.db
+
+# Agent workspace, not project source
+.pi/
+
+# Secrets
+.env
+.env.local

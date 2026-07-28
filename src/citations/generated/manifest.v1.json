@@ -1,0 +1,1054 @@
+{
+  "schemaVersion": "pdf-citation-manifest/v3",
+  "source": {
+    "sha256": "4adde89b07f1f59fa6772a14e86e66e5d96389d32dc6fe230e8f2eb9635225dd",
+    "sourcePath": "documents/sample.pdf",
+    "documentId": "doc-4adde89b07f1",
+    "version": "sha256-4adde89b07f1f59f",
+    "title": "sample",
+    "pageCount": 3,
+    "renderer": {
+      "tool": "poppler",
+      "dpi": 144
+    },
+    "pages": [
+      {
+        "page": 1,
+        "textSha256": "c92ad3339c5bc03e16fdf42bce9703149f829c6eec504848bd9befa21eb0dad9",
+        "widthPoints": 612,
+        "heightPoints": 792,
+        "imageSha256": "310bca76d718efa2c67ec7511675dc4844a9ea7d34d1283ffc9157391173f0e5"
+      },
+      {
+        "page": 2,
+        "textSha256": "c235609ed7e0e0f5b32fe42a0dbe168f604a4d37ab681e04489b58911d32d78c",
+        "widthPoints": 612,
+        "heightPoints": 792,
+        "imageSha256": "58bba25b75c03c7fa726e5a7799ae94f87437cd98114cfed9b697352789c81cf"
+      },
+      {
+        "page": 3,
+        "textSha256": "7d6795a3fc0162b6fa8e04e994c4f1e1f27d66565506cb1e797cb12b3576ca76",
+        "widthPoints": 612,
+        "heightPoints": 792,
+        "imageSha256": "f2b3d25c774134c3e7fac834e561fcb14932afdb8ddee4ca4aa8114c25ade3fb"
+      }
+    ]
+  },
+  "citations": [
+    {
+      "id": "doc-4adde89b07f1.p1.c1",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — ● SYSTEM READOUT / RYAN BROSAS / 2026 RYAN JOSE BROSAS",
+      "excerpt": "● SYSTEM READOUT / RYAN BROSAS / 2026 RYAN JOSE BROSAS",
+      "spans": [
+        {
+          "text": "● SYSTEM READOUT / RYAN BROSAS / 2026",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.039772911616161616,
+            "width": 0.4792279411764706,
+            "height": 0.012499999999999999
+          }
+        },
+        {
+          "text": "RYAN JOSE",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.05999699621212121,
+            "width": 0.38188235294117645,
+            "height": 0.06645833333333333
+          }
+        },
+        {
+          "text": "BROSAS",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.1116257840909091,
+            "width": 0.28150122549019607,
+            "height": 0.06645833333333333
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c2",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — AI ENGINEER / AGENT SYSTEMS BUILDER Building systems so everything does…",
+      "excerpt": "AI ENGINEER / AGENT SYSTEMS BUILDER Building systems so everything doesn't need you.",
+      "spans": [
+        {
+          "text": "AI ENGINEER / AGENT SYSTEMS BUILDER",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.18488677146464644,
+            "width": 0.44284867156862745,
+            "height": 0.01500000000000003
+          }
+        },
+        {
+          "text": "Building systems so",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.21865374494949494,
+            "width": 0.3303468137254902,
+            "height": 0.033229166666666664
+          }
+        },
+        {
+          "text": "everything doesn't",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.24776359343434345,
+            "width": 0.31226470588235294,
+            "height": 0.033229166666666664
+          }
+        },
+        {
+          "text": "need you.",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.27687344191919194,
+            "width": 0.163421568627451,
+            "height": 0.033229166666666664
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c3",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — AI agents and automation that do real work in production. Model-agnosti…",
+      "excerpt": "AI agents and automation that do real work in production. Model-agnostic, and built on data that actually holds up.",
+      "spans": [
+        {
+          "text": "AI agents and automation that do real work in production. Model-agnostic, and",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.3276769053030303,
+            "width": 0.6245612745098039,
+            "height": 0.016041666666666645
+          }
+        },
+        {
+          "text": "built on data that actually holds up.",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.3488890265151515,
+            "width": 0.27783823529411766,
+            "height": 0.016041666666666645
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c4",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — LOCATION FOCUS CONTACT STATUS Metro Manila, PH AI agents & automation r…",
+      "excerpt": "LOCATION FOCUS CONTACT STATUS Metro Manila, PH AI agents & automation ryanjoserbrosas@gmail.com ● Open to work",
+      "spans": [
+        {
+          "text": "LOCATION FOCUS CONTACT STATUS",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.394981023989899,
+            "width": 0.8111095163398694,
+            "height": 0.010625000000000025
+          }
+        },
+        {
+          "text": "Metro Manila, PH AI agents & automation ryanjoserbrosas@gmail.com ● Open to work",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.4084464886363636,
+            "width": 0.877494454248366,
+            "height": 0.013749999999999983
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c5",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — // BUILD TypeScript Pydantic AI Mastra AI SDK OpenCode pi.dev",
+      "excerpt": "// BUILD TypeScript Pydantic AI Mastra AI SDK OpenCode pi.dev",
+      "spans": [
+        {
+          "text": "// BUILD",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.44776418939393936,
+            "width": 0.0683639705882353,
+            "height": 0.01125000000000003
+          }
+        },
+        {
+          "text": "TypeScript Pydantic AI Mastra AI SDK OpenCode pi.dev",
+          "rect": {
+            "x": 0.0857843137254902,
+            "y": 0.47321888383838384,
+            "width": 0.5221715588235294,
+            "height": 0.013124999999999977
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c6",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — // MODELS Claude OpenAI GLM DeepSeek Kimi",
+      "excerpt": "// MODELS Claude OpenAI GLM DeepSeek Kimi",
+      "spans": [
+        {
+          "text": "// MODELS",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.5090712297979798,
+            "width": 0.07718014705882353,
+            "height": 0.01124999999999996
+          }
+        },
+        {
+          "text": "Claude OpenAI GLM DeepSeek Kimi",
+          "rect": {
+            "x": 0.0857843137254902,
+            "y": 0.534525922979798,
+            "width": 0.3359013578431373,
+            "height": 0.013124999999999977
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c7",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — // SYSTEMS RAG MCP servers n8n Clay HubSpot Apify PhantomBuster",
+      "excerpt": "// SYSTEMS RAG MCP servers n8n Clay HubSpot Apify PhantomBuster",
+      "spans": [
+        {
+          "text": "// SYSTEMS",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.5703782702020203,
+            "width": 0.08599632352941176,
+            "height": 0.01124999999999996
+          }
+        },
+        {
+          "text": "RAG MCP servers n8n Clay HubSpot Apify PhantomBuster",
+          "rect": {
+            "x": 0.0857843137254902,
+            "y": 0.5958329633838384,
+            "width": 0.5463156307189543,
+            "height": 0.013125000000000048
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c8",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — SUMMARY Somewhere in your workflow there are 20 hours a week that an AI…",
+      "excerpt": "SUMMARY Somewhere in your workflow there are 20 hours a week that an AI agent should already be doing. I build AI agents and automation that take that off your team every week. I have worked across design, web, support, marketing, and client delivery so I know how teams operate. I got into AI by building. One day an n8n workflow clicked and I went deep on agents, prompts, and RAG. Now I build scrapers, research and outreach agents, and MCP",
+      "spans": [
+        {
+          "text": "SUMMARY",
+          "rect": {
+            "x": 0.11519607843137254,
+            "y": 0.654412619949495,
+            "width": 0.07604166666666666,
+            "height": 0.013749999999999983
+          }
+        },
+        {
+          "text": "Somewhere in your workflow there are 20 hours a week that an AI agent should",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.6853703358585859,
+            "width": 0.6924816176470588,
+            "height": 0.017187499999999942
+          }
+        },
+        {
+          "text": "already be doing.",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.7066771540404041,
+            "width": 0.15136029411764704,
+            "height": 0.017187499999999942
+          }
+        },
+        {
+          "text": "I build AI agents and automation that take that off your team every week. I have worked",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.7357378446969698,
+            "width": 0.6673566176470589,
+            "height": 0.01546874999999989
+          }
+        },
+        {
+          "text": "across design, web, support, marketing, and client delivery so I know how teams",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.7556810265151515,
+            "width": 0.6174430147058824,
+            "height": 0.015468750000000035
+          }
+        },
+        {
+          "text": "operate.",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.7756242083333332,
+            "width": 0.06346323529411765,
+            "height": 0.015468750000000035
+          }
+        },
+        {
+          "text": "I got into AI by building. One day an n8n workflow clicked and I went deep on agents,",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.8031431477272728,
+            "width": 0.6536772565359477,
+            "height": 0.015468750000000035
+          }
+        },
+        {
+          "text": "prompts, and RAG. Now I build scrapers, research and outreach agents, and MCP",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.8230863295454546,
+            "width": 0.6247646209150327,
+            "height": 0.015468750000000035
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p1.c9",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 1,
+      "label": "p.1 — servers that run in production. I do not lock into one model vendor so…",
+      "excerpt": "servers that run in production. I do not lock into one model vendor so I pick the right one for the job. But a good AI system is only as good as what is under it. I think a lot about data architecture, how it is structured, where it comes from, and how it flows through the system. That is what makes agents actually reliable.",
+      "spans": [
+        {
+          "text": "servers that run in production. I do not lock into one model vendor so I pick the right",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.8430295113636365,
+            "width": 0.652934341503268,
+            "height": 0.01546874999999989
+          }
+        },
+        {
+          "text": "one for the job.",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.8629726931818182,
+            "width": 0.11620588235294117,
+            "height": 0.015468750000000035
+          }
+        },
+        {
+          "text": "But a good AI system is only as good as what is under it. I think a lot about data",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.8904916325757576,
+            "width": 0.6063584558823529,
+            "height": 0.015468750000000035
+          }
+        },
+        {
+          "text": "architecture, how it is structured, where it comes from, and how it flows through the",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.9104348143939395,
+            "width": 0.6417959558823529,
+            "height": 0.01546874999999989
+          }
+        },
+        {
+          "text": "system. That is what makes agents actually reliable.",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.9303779962121212,
+            "width": 0.3973897058823529,
+            "height": 0.015468750000000035
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p2.c1",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 2,
+      "label": "p.2 — I care about the whole system. What breaks, and who checks the work. An…",
+      "excerpt": "I care about the whole system. What breaks, and who checks the work. And I always tell you what worked and what did not.",
+      "spans": [
+        {
+          "text": "I care about the whole system. What breaks, and who checks the work. And I always tell",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.036325410353535356,
+            "width": 0.6751323529411765,
+            "height": 0.015468749999999998
+          }
+        },
+        {
+          "text": "you what worked and what did not.",
+          "rect": {
+            "x": 0.07352941176470588,
+            "y": 0.056268592171717174,
+            "width": 0.2688419117647059,
+            "height": 0.015468749999999998
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p2.c2",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 2,
+      "label": "p.2 — EXPERIENCE · BUILD LOG 01 GTM & Automation Specialist",
+      "excerpt": "EXPERIENCE · BUILD LOG 01 GTM & Automation Specialist",
+      "spans": [
+        {
+          "text": "EXPERIENCE · BUILD LOG",
+          "rect": {
+            "x": 0.11519607843137254,
+            "y": 0.10238610479797979,
+            "width": 0.2685,
+            "height": 0.01375
+          }
+        },
+        {
+          "text": "01 GTM & Automation Specialist",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.1331771123737374,
+            "width": 0.3635933758169935,
+            "height": 0.022182588383838374
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p2.c3",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 2,
+      "label": "p.2 — LATEST Brainforge · Oct 2025 - Mar 2026 Saved the team 10 to 15 hours e…",
+      "excerpt": "LATEST Brainforge · Oct 2025 - Mar 2026 Saved the team 10 to 15 hours every week by building a repeatable process others could run to find and reach leads, using Clay, HubSpot, Apify, and PhantomBuster. Brought in 3 to 5 solid leads per campaign, running each one from start to finish. Set up HubSpot to update itself, so no one had to fix records by hand. Added a prequalification step, mostly automated with a light review, that filtered out weak leads so the",
+      "spans": [
+        {
+          "text": "LATEST",
+          "rect": {
+            "x": 0.4706213611111111,
+            "y": 0.14100097601010103,
+            "width": 0.04630882352941178,
+            "height": 0.011249999999999996
+          }
+        },
+        {
+          "text": "Brainforge · Oct 2025 - Mar 2026",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.16138165025252527,
+            "width": 0.27014460784313726,
+            "height": 0.012500000000000008
+          }
+        },
+        {
+          "text": "Saved the team 10 to 15 hours every week by building a repeatable process others could run to find",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.18764301767676766,
+            "width": 0.741078862745098,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "and reach leads, using Clay, HubSpot, Apify, and PhantomBuster.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.20733998737373738,
+            "width": 0.4805220588235294,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "Brought in 3 to 5 solid leads per campaign, running each one from start to finish.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.23461271464646463,
+            "width": 0.602408433006536,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "Set up HubSpot to update itself, so no one had to fix records by hand.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.26188544191919194,
+            "width": 0.5136752450980393,
+            "height": 0.014895833333333315
+          }
+        },
+        {
+          "text": "Added a prequalification step, mostly automated with a light review, that filtered out weak leads so the",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.2891581691919192,
+            "width": 0.7527892156862745,
+            "height": 0.014895833333333315
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p2.c4",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 2,
+      "label": "p.2 — team only worked the ones worth chasing.",
+      "excerpt": "team only worked the ones worth chasing.",
+      "spans": [
+        {
+          "text": "team only worked the ones worth chasing.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.3088551388888889,
+            "width": 0.3131789215686275,
+            "height": 0.014895833333333351
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p2.c5",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 2,
+      "label": "p.2 — 02 GTM & Ghostwriter Brainforge · Sep 2024 - Oct 2025 Grew the blog to…",
+      "excerpt": "02 GTM & Ghostwriter Brainforge · Sep 2024 - Oct 2025 Grew the blog to 915,000 Google search impressions and 1,690 clicks, at an average search position of 8.1. Grew LinkedIn content to 206,405 impressions, up 616% in a year. Got Brainforge's content cited in AI answers like ChatGPT and Claude, by writing it to be picked up by LLMs, not just ranked on Google. Brought the account to 3,824 profile viewers with steady, ghostwritten posts.",
+      "spans": [
+        {
+          "text": "02 GTM & Ghostwriter",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.3564531464646465,
+            "width": 0.25863994444444444,
+            "height": 0.022182588383838357
+          }
+        },
+        {
+          "text": "Brainforge · Sep 2024 - Oct 2025",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.3846576856060606,
+            "width": 0.27014460784313726,
+            "height": 0.012499999999999971
+          }
+        },
+        {
+          "text": "Grew the blog to 915,000 Google search impressions and 1,690 clicks, at an average search position",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.410919053030303,
+            "width": 0.7581310996732026,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "of 8.1.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.43061602272727273,
+            "width": 0.04239338235294118,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "Grew LinkedIn content to 206,405 impressions, up 616% in a year.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.45788875,
+            "width": 0.5067769607843137,
+            "height": 0.014895833333333278
+          }
+        },
+        {
+          "text": "Got Brainforge's content cited in AI answers like ChatGPT and Claude, by writing it to be picked up",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.48516147727272724,
+            "width": 0.7395445866013071,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "by LLMs, not just ranked on Google.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.504858446969697,
+            "width": 0.2658468137254901,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "Brought the account to 3,824 profile viewers with steady, ghostwritten posts.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.5321311742424242,
+            "width": 0.5684313725490197,
+            "height": 0.014895833333333351
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p2.c6",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 2,
+      "label": "p.2 — 03 Copywriter, Web Designer & Developer, Graphic Designer Upwork (Freel…",
+      "excerpt": "03 Copywriter, Web Designer & Developer, Graphic Designer Upwork (Freelance) · Jan 2024 - Present Design and build fast, simple WordPress sites for all kinds of clients. Grew client blog traffic by 20 to 30% with SEO and clear writing. Turned that into real results: podcast invites, partnerships, and booked calls.",
+      "spans": [
+        {
+          "text": "03 Copywriter, Web Designer & Developer, Graphic Designer",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.5797291818181818,
+            "width": 0.6549021993464053,
+            "height": 0.022182587121212096
+          }
+        },
+        {
+          "text": "Upwork (Freelance) · Jan 2024 - Present",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.6079337196969696,
+            "width": 0.3259093137254902,
+            "height": 0.012500000000000042
+          }
+        },
+        {
+          "text": "Design and build fast, simple WordPress sites for all kinds of clients.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.6341950871212121,
+            "width": 0.5014558823529413,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "Grew client blog traffic by 20 to 30% with SEO and clear writing.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.6614678143939394,
+            "width": 0.4844791862745098,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "Turned that into real results: podcast invites, partnerships, and booked calls.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.6887405416666668,
+            "width": 0.5625526960784313,
+            "height": 0.014895833333333207
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p2.c7",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 2,
+      "label": "p.2 — 04 Process Associate / Quality Control Analyst TT Active Digital Market…",
+      "excerpt": "04 Process Associate / Quality Control Analyst TT Active Digital Marketing · Laguna · Jul 2022 - Sep 2024 Brought in 10% more qualified leads and raised call quality by 30%, hitting every quality goal for 6 months straight.",
+      "spans": [
+        {
+          "text": "04 Process Associate / Quality Control Analyst",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.7363385492424241,
+            "width": 0.5137526895424837,
+            "height": 0.02218258712121217
+          }
+        },
+        {
+          "text": "TT Active Digital Marketing · Laguna · Jul 2022 - Sep 2024",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.7645430871212122,
+            "width": 0.4931838235294118,
+            "height": 0.012499999999999971
+          }
+        },
+        {
+          "text": "Brought in 10% more qualified leads and raised call quality by 30%, hitting every quality goal for 6",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.7908044545454546,
+            "width": 0.7389345424836601,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "months straight.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.8105014242424243,
+            "width": 0.11954901960784312,
+            "height": 0.014895833333333207
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c1",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — 05 Outsourcing Manager Demicreation Digital Solution · Aug 2019 - Sep 2…",
+      "excerpt": "05 Outsourcing Manager Demicreation Digital Solution · Aug 2019 - Sep 2024 Closed 20 to 30% more deals and set up offshore teams across the Philippines, India, and Pakistan, keeping clients and call centers aligned.",
+      "spans": [
+        {
+          "text": "05 Outsourcing Manager",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.035980587121212125,
+            "width": 0.2871129836601307,
+            "height": 0.022182587121212113
+          }
+        },
+        {
+          "text": "Demicreation Digital Solution · Aug 2019 - Sep 2024",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.06418512500000001,
+            "width": 0.42149264705882356,
+            "height": 0.012499999999999999
+          }
+        },
+        {
+          "text": "Closed 20 to 30% more deals and set up offshore teams across the Philippines, India, and Pakistan,",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.09044649242424242,
+            "width": 0.7410843284313725,
+            "height": 0.014895833333333332
+          }
+        },
+        {
+          "text": "keeping clients and call centers aligned.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.11014346212121212,
+            "width": 0.2951605392156863,
+            "height": 0.014895833333333332
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c2",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — 06 Client Fulfillment Manager WritersER · Nov 2023 - Jul 2024 Made clie…",
+      "excerpt": "06 Client Fulfillment Manager WritersER · Nov 2023 - Jul 2024 Made clients 20 to 30% happier and the team 50% more efficient; hired across dev, video, QA, and writing, and set clear SOPs.",
+      "spans": [
+        {
+          "text": "06 Client Fulfillment Manager",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.1577414696969697,
+            "width": 0.333992885620915,
+            "height": 0.022182588383838374
+          }
+        },
+        {
+          "text": "WritersER · Nov 2023 - Jul 2024",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.18594600757575758,
+            "width": 0.26217892156862743,
+            "height": 0.012500000000000008
+          }
+        },
+        {
+          "text": "Made clients 20 to 30% happier and the team 50% more efficient; hired across dev, video, QA, and",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.212207375,
+            "width": 0.7464701192810457,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "writing, and set clear SOPs.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.2319043446969697,
+            "width": 0.20363480392156866,
+            "height": 0.014895833333333351
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c3",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — 07 Samsung Experience Specialist Samsung Mobile · Jan 2018 - Dec 2019 C…",
+      "excerpt": "07 Samsung Experience Specialist Samsung Mobile · Jan 2018 - Dec 2019 Closed 700+ deals and grew store sales by 70%, driving half of the store's top-phone sales with a simple who, what, why approach.",
+      "spans": [
+        {
+          "text": "07 Samsung Experience Specialist",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.27950235227272724,
+            "width": 0.38791935620915036,
+            "height": 0.02218258838383839
+          }
+        },
+        {
+          "text": "Samsung Mobile · Jan 2018 - Dec 2019",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.3077068914141414,
+            "width": 0.3020073529411765,
+            "height": 0.012500000000000008
+          }
+        },
+        {
+          "text": "Closed 700+ deals and grew store sales by 70%, driving half of the store's top-phone sales with a",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.3339682575757576,
+            "width": 0.7333712369281047,
+            "height": 0.014895833333333351
+          }
+        },
+        {
+          "text": "simple who, what, why approach.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.3536652272727273,
+            "width": 0.24687254901960787,
+            "height": 0.014895833333333278
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c4",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — 08 Quality Assurance Specialist Bluelogic Solutions Inc. · Muntinlupa ·…",
+      "excerpt": "08 Quality Assurance Specialist Bluelogic Solutions Inc. · Muntinlupa · Sep 2018 - Aug 2019 Trained a new QA from scratch, and raised campaign quality by 20 to 30% using data.",
+      "spans": [
+        {
+          "text": "08 Quality Assurance Specialist",
+          "rect": {
+            "x": 0.08676446732026144,
+            "y": 0.4012632361111111,
+            "width": 0.35928945424836606,
+            "height": 0.02218258712121217
+          }
+        },
+        {
+          "text": "Bluelogic Solutions Inc. · Muntinlupa · Sep 2018 - Aug 2019",
+          "rect": {
+            "x": 0.14583333333333334,
+            "y": 0.429467773989899,
+            "width": 0.5011495098039216,
+            "height": 0.012499999999999971
+          }
+        },
+        {
+          "text": "Trained a new QA from scratch, and raised campaign quality by 20 to 30% using data.",
+          "rect": {
+            "x": 0.16544117647058823,
+            "y": 0.4557291414141414,
+            "width": 0.6457165,
+            "height": 0.014895833333333351
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c5",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — CERTIFICATIONS, EDUCATION & MORE",
+      "excerpt": "CERTIFICATIONS, EDUCATION & MORE",
+      "spans": [
+        {
+          "text": "CERTIFICATIONS, EDUCATION & MORE",
+          "rect": {
+            "x": 0.11519607843137254,
+            "y": 0.5393159987373737,
+            "width": 0.3590686274509804,
+            "height": 0.013750000000000054
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c6",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — CERTIFICATIONS EDUCATION Google Project Management Adamson University C…",
+      "excerpt": "CERTIFICATIONS EDUCATION Google Project Management Adamson University Conversion Copywriting (Foundations) THEFUTUR Strategy, Process, UI/UX, Design Fundamentals Direct Response Copywriting COURSERA",
+      "spans": [
+        {
+          "text": "CERTIFICATIONS EDUCATION",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.6127253131313132,
+            "width": 0.5103878676470588,
+            "height": 0.011874999999999965
+          }
+        },
+        {
+          "text": "Google Project Management Adamson University",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.644542994949495,
+            "width": 0.5788449754901961,
+            "height": 0.014322916666666739
+          }
+        },
+        {
+          "text": "Conversion Copywriting (Foundations) THEFUTUR",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.6755183914141415,
+            "width": 0.48419240196078434,
+            "height": 0.015781232323232332
+          }
+        },
+        {
+          "text": "Strategy, Process, UI/UX, Design Fundamentals",
+          "rect": {
+            "x": 0.5379901960784313,
+            "y": 0.6908024646464647,
+            "width": 0.3372395833333333,
+            "height": 0.014322916666666666
+          }
+        },
+        {
+          "text": "Direct Response Copywriting",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.7094104191919193,
+            "width": 0.2065563725490196,
+            "height": 0.014322916666666666
+          }
+        },
+        {
+          "text": "COURSERA",
+          "rect": {
+            "x": 0.5379901960784313,
+            "y": 0.7217778611111111,
+            "width": 0.05527083333333338,
+            "height": 0.010000000000000092
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c7",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — ClickUp Admin & Novice Ongoing coursework",
+      "excerpt": "ClickUp Admin & Novice Ongoing coursework",
+      "spans": [
+        {
+          "text": "ClickUp Admin & Novice Ongoing coursework",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.7370619343434344,
+            "width": 0.5771905637254903,
+            "height": 0.019105113636363667
+          }
+        }
+      ]
+    },
+    {
+      "id": "doc-4adde89b07f1.p3.c8",
+      "documentId": "doc-4adde89b07f1",
+      "version": "sha256-4adde89b07f1f59f",
+      "page": 3,
+      "label": "p.3 — LANGUAGES // WHAT'S NEXT Better testing, more case studies, and the nex…",
+      "excerpt": "LANGUAGES // WHAT'S NEXT Better testing, more case studies, and the next Tagalog native thing to learn. Always building. English native / bilingual",
+      "spans": [
+        {
+          "text": "LANGUAGES // WHAT'S NEXT",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.8263041919191919,
+            "width": 0.561672794117647,
+            "height": 0.011875703282828338
+          }
+        },
+        {
+          "text": "Better testing, more case studies, and the next",
+          "rect": {
+            "x": 0.5551470588235294,
+            "y": 0.844881303030303,
+            "width": 0.3171029411764706,
+            "height": 0.013749999999999983
+          }
+        },
+        {
+          "text": "Tagalog native thing to learn. Always building.",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.858122577020202,
+            "width": 0.6546666666666667,
+            "height": 0.017554180555555576
+          }
+        },
+        {
+          "text": "English native / bilingual",
+          "rect": {
+            "x": 0.1090686274509804,
+            "y": 0.890556289141414,
+            "width": 0.17836363562091503,
+            "height": 0.014322916666666666
+          }
+        }
+      ]
+    }
+  ]
+}
