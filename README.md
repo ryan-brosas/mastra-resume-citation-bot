@@ -72,6 +72,9 @@ pnpm test                     # citation contract + anti-fabrication tests
 pnpm dev                      # web UI at http://localhost:4111/ask
 ```
 
+`pnpm dev` intentionally binds to `127.0.0.1`. The UI has no authentication and serves the real
+résumé, so do not expose port 4111 to a LAN or the internet without adding an access-control layer.
+
 ### Ways to ask
 
 | Surface | Command |
