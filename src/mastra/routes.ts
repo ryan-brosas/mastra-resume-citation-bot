@@ -15,6 +15,22 @@ import {
 
 const UI_DIR = resolve(PROJECT_ROOT, 'src/mastra/ui');
 
+const SECURITY_HEADERS = {
+  'content-security-policy':
+    "default-src 'self'; base-uri 'none'; connect-src 'self'; frame-ancestors 'none'; " +
+    "form-action 'none'; img-src 'self'; object-src 'none'; script-src 'self'; style-src 'self'",
+  'cross-origin-resource-policy': 'same-origin',
+  'permissions-policy': 'camera=(), geolocation=(), microphone=()',
+  'referrer-policy': 'no-referrer',
+  'x-content-type-options': 'nosniff',
+  'x-frame-options': 'DENY',
+} as const;
+
+function secureResponse(response: Response): Response {
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) response.headers.set(name, value);
+  return response;
+}
+
 /** Route-level refusals a caller can provoke, in addition to the answer failures. */
 export type RouteErrorCode = AnswerErrorCode | 'payload_too_large';
 
@@ -96,10 +112,10 @@ export function readHistory(value: unknown): readonly Exchange[] {
 }
 
 function unavailable(code: string, status: number): Response {
-  return new Response(JSON.stringify({ code }), {
+  return secureResponse(new Response(JSON.stringify({ code }), {
     status,
     headers: { 'content-type': 'application/json' },
-  });
+  }));
 }
 
 /** Named rather than derived from the request, so no request can reach a path of its own choosing. */
@@ -113,9 +129,9 @@ function uiAsset(file: string, contentType: string) {
       } catch {
         return unavailable('asset_unavailable', 503);
       }
-      return new Response(body, {
+      return secureResponse(new Response(body, {
         headers: { 'content-type': contentType, 'cache-control': 'no-cache' },
-      });
+      }));
     },
   });
 }
@@ -131,7 +147,7 @@ export function createAskRoutes(deps: RouteDeps = liveRouteDeps) {
         } catch {
           return unavailable('asset_unavailable', 503);
         }
-        return c.html(body);
+        return secureResponse(c.html(body));
       },
     }),
 
@@ -143,16 +159,16 @@ export function createAskRoutes(deps: RouteDeps = liveRouteDeps) {
       handler: async (c: any) => {
         try {
           const { source, citations } = await deps.manifest();
-          return c.json({
+          return secureResponse(c.json({
             title: source.title,
             sourcePath: source.sourcePath,
             pageCount: source.pageCount,
             citationCount: citations.length,
             version: source.version,
-          });
+          }));
         } catch {
           // Stable code only: trust-boundary detail never crosses to the browser.
-          return c.json({ code: 'manifest_unavailable' }, 503);
+          return secureResponse(c.json({ code: 'manifest_unavailable' }, 503));
         }
       },
     }),
@@ -162,33 +178,35 @@ export function createAskRoutes(deps: RouteDeps = liveRouteDeps) {
       handler: async (c: any) => {
         const page = Number(c.req.param('page'));
         const manifest = await deps.manifest().catch(() => undefined);
-        if (manifest === undefined) return c.json({ code: 'manifest_unavailable' }, 503);
+        if (manifest === undefined) return secureResponse(c.json({ code: 'manifest_unavailable' }, 503));
 
         const digest = manifest.source.pages.find((entry) => entry.page === page);
-        if (!Number.isInteger(page) || digest === undefined) return c.json({ code: 'unknown_page' }, 404);
+        if (!Number.isInteger(page) || digest === undefined) {
+          return secureResponse(c.json({ code: 'unknown_page' }, 404));
+        }
 
         // The answer carried a version; refuse to pair its geometry with a republished render.
         const requested = c.req.query('v');
         if (typeof requested === 'string' && requested !== manifest.source.version) {
-          return c.json({ code: 'stale_version' }, 409);
+          return secureResponse(c.json({ code: 'stale_version' }, 409));
         }
 
         let bytes: Buffer;
         try {
           bytes = await readFile(pageImagePath(page));
         } catch {
-          return c.json({ code: 'page_image_mismatch' }, 503);
+          return secureResponse(c.json({ code: 'page_image_mismatch' }, 503));
         }
 
         // Hash the bytes actually being sent: verifying the path, then reopening it, would leave a
         // window in which a republished render could be served against an already-checked manifest.
         if (sha256Hex(bytes) !== digest.imageSha256) {
-          return c.json({ code: 'page_image_mismatch' }, 503);
+          return secureResponse(c.json({ code: 'page_image_mismatch' }, 503));
         }
 
-        return new Response(new Uint8Array(bytes), {
+        return secureResponse(new Response(new Uint8Array(bytes), {
           headers: { 'content-type': 'image/png', 'cache-control': 'no-cache' },
-        });
+        }));
       },
     }),
 
@@ -196,15 +214,17 @@ export function createAskRoutes(deps: RouteDeps = liveRouteDeps) {
       method: 'POST',
       handler: async (c: any) => {
         const body = await readBoundedBody(c);
-        if (!body.ok) return c.json({ code: body.code }, STATUS[body.code]);
+        if (!body.ok) return secureResponse(c.json({ code: body.code }, STATUS[body.code]));
 
         const payload = (body.value ?? {}) as { question?: unknown; history?: unknown };
         const { question } = payload;
-        if (typeof question !== 'string') return c.json({ code: 'invalid_question' }, 400);
+        if (typeof question !== 'string') {
+          return secureResponse(c.json({ code: 'invalid_question' }, 400));
+        }
 
         try {
           const result = await deps.answer(question, readHistory(payload.history));
-          return c.json({
+          return secureResponse(c.json({
             ...result,
             pages: result.pages.map((page) => ({
               page: page.page,
@@ -212,11 +232,11 @@ export function createAskRoutes(deps: RouteDeps = liveRouteDeps) {
               heightPoints: page.heightPoints,
               image: `ask/page/${page.page}?v=${result.version}`,
             })),
-          });
+          }));
         } catch (error) {
           // Callers get a stable code; internals never cross the boundary.
           const code: RouteErrorCode = error instanceof AnswerError ? error.code : 'model_failed';
-          return c.json({ code }, STATUS[code]);
+          return secureResponse(c.json({ code }, STATUS[code]));
         }
       },
     }),

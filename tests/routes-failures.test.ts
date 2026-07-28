@@ -87,6 +87,26 @@ test('an untrusted manifest makes page delivery fail closed', async () => {
   assert.deepEqual(call.captured.json, { code: 'manifest_unavailable' });
 });
 
+test('a page whose bytes disagree with its digest fails with the security policy', async () => {
+  const drifted: CitationManifest = {
+    ...manifest,
+    source: {
+      ...manifest.source,
+      pages: manifest.source.pages.map((page, index) =>
+        index === 0 ? { ...page, imageSha256: '0'.repeat(64) } : page,
+      ),
+    },
+  };
+
+  const response: Response = await routes({ manifest: async () => drifted })('/ask/page/:page').handler(
+    context({ param: { page: '1' } }).c,
+  );
+
+  assert.equal(response.status, 503);
+  assert.deepEqual(await response.json(), { code: 'page_image_mismatch' });
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+});
+
 test('every answer failure maps to its own stable code and status', async () => {
   const expected = [
     ['invalid_question', 400],

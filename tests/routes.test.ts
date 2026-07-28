@@ -54,6 +54,26 @@ test('the page shell and its assets are served with the right media types', asyn
   }
 });
 
+test('every public route applies the browser security policy', async () => {
+  const responses: readonly [string, Response][] = [
+    ['shell', await route('/ask').handler(context().c)],
+    ['asset', await route('/ask/app.js').handler(context().c)],
+    ['document', await route('/ask/document').handler(context().c)],
+    ['page', await route('/ask/page/:page').handler(context({ param: { page: '1' } }).c)],
+    ['answer error', await route('/ask/answer', 'POST').handler(context().c)],
+  ];
+
+  for (const [name, response] of responses) {
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff', name);
+    assert.equal(response.headers.get('x-frame-options'), 'DENY', name);
+    assert.equal(response.headers.get('referrer-policy'), 'no-referrer', name);
+    assert.equal(response.headers.get('cross-origin-resource-policy'), 'same-origin', name);
+    assert.equal(response.headers.get('permissions-policy'), 'camera=(), geolocation=(), microphone=()', name);
+    assert.match(response.headers.get('content-security-policy') ?? '', /default-src 'self'/, name);
+    assert.match(response.headers.get('content-security-policy') ?? '', /frame-ancestors 'none'/, name);
+  }
+});
+
 test('the document summary reports the trusted manifest', async () => {
   const summary = context();
   await route('/ask/document').handler(summary.c);
