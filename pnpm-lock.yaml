@@ -26,10 +26,10 @@ importers:
         version: 25.9.5
       mastra:
         specifier: 1.21.0
-        version: 1.21.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3)
+        version: 1.21.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)
       typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 
@@ -2274,8 +2274,8 @@ packages:
     peerDependencies:
       typescript: ^4.7.2 || ^5 || ^6
 
-  typescript@5.9.3:
-    resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
+  typescript@6.0.3:
+    resolution: {integrity: sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -2851,7 +2851,7 @@ snapshots:
       - utf-8-validate
       - workflow
 
-  '@mastra/deployer@1.55.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3)':
+  '@mastra/deployer@1.55.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)':
     dependencies:
       '@babel/core': 8.0.1
       '@babel/preset-typescript': 8.0.1(@babel/core@8.0.1)
@@ -2879,7 +2879,7 @@ snapshots:
       rollup-plugin-esbuild: 6.2.1(esbuild@0.28.1)(rollup@4.62.3)
       strip-json-comments: 5.0.3
       tinyglobby: 0.2.17
-      typescript-paths: 1.5.2(typescript@5.9.3)
+      typescript-paths: 1.5.2(typescript@6.0.3)
       ws: 8.21.1
     transitivePeerDependencies:
       - '@hono/node-server'
@@ -3928,14 +3928,14 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  mastra@1.21.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3):
+  mastra@1.21.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3):
     dependencies:
       '@babel/parser': 8.0.4
       '@babel/types': 8.0.4
       '@clack/prompts': 1.7.0
       '@expo/devcert': 1.2.1
       '@mastra/core': 1.55.0(express@5.2.1)(zod@4.4.3)
-      '@mastra/deployer': 1.55.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3)
+      '@mastra/deployer': 1.55.0(@hono/node-server@2.0.12(hono@4.12.32))(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)
       '@mastra/loggers': 1.2.0(@mastra/core@1.55.0(express@5.2.1)(zod@4.4.3))
       archiver: 8.0.0
       commander: 14.0.3
@@ -4849,11 +4849,11 @@ snapshots:
       media-typer: 1.1.1
       mime-types: 3.0.2
 
-  typescript-paths@1.5.2(typescript@5.9.3):
+  typescript-paths@1.5.2(typescript@6.0.3):
     dependencies:
-      typescript: 5.9.3
+      typescript: 6.0.3
 
-  typescript@5.9.3: {}
+  typescript@6.0.3: {}
 
   ufo@1.6.4: {}
 
