@@ -27,7 +27,7 @@ test('a document that fits returns every citation in document order, without sea
   assert.equal(searches, 0, 'a document that fits must not be narrowed by similarity');
   assert.equal(evidence.length, manifest.citations.length, 'every citation must reach the model');
   assert.deepEqual(
-    evidence.map(({ citation }) => citation.id),
+    evidence.map((citation) => citation.id),
     manifest.citations.map((citation) => citation.id),
     'evidence must arrive in manifest order, since comparing entries depends on it',
   );
@@ -35,7 +35,7 @@ test('a document that fits returns every citation in document order, without sea
 
 test('every page is represented, so a comparison cannot miss an entry', async () => {
   const evidence = await retrieveEvidence('anything', manifest, { search: async () => [] });
-  const pages = [...new Set(evidence.map(({ citation }) => citation.page))].sort((a, b) => a - b);
+  const pages = [...new Set(evidence.map((citation) => citation.page))].sort((a, b) => a - b);
 
   assert.deepEqual(pages, [...new Set(manifest.citations.map((c) => c.page))].sort((a, b) => a - b));
 });
@@ -64,5 +64,5 @@ test('a similarity hit that is not in the manifest is dropped, never invented', 
     search: async () => ['doc-deadbeef.p9.c99', real, 'not-an-id-at-all'],
   });
 
-  assert.deepEqual(evidence.map(({ citation }) => citation.id), [real], 'only manifest-resolvable ids survive');
+  assert.deepEqual(evidence.map((citation) => citation.id), [real], 'only manifest-resolvable ids survive');
 });

@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
-import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { appendFile, chmod, copyFile, cp, mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join, relative } from 'node:path';
+import { basename, dirname, join, relative } from 'node:path';
 import { test } from 'node:test';
-import { serializeManifest, sha256Hex, type CitationManifest } from '../src/citations/contract.ts';
+import { serializeManifest, sha256Hex, versionFor, type CitationManifest } from '../src/citations/contract.ts';
 import {
   DEFAULT_SOURCE_PATH,
   PROJECT_ROOT,
-  STAGING_PAGES_DIR,
+  PAGES_DIR,
   buildManifest,
   extractSource,
+  pageImageName,
   readPageImages,
 } from '../src/citations/manifest.ts';
 import { ManifestTrustError, publishManifest, trustedManifest, verifiedManifest } from '../src/citations/trust.ts';
@@ -19,6 +20,24 @@ const source = await extractSource(DEFAULT_SOURCE_PATH);
 const images = await readPageImages(source.pages.length);
 const manifest = buildManifest(source, images);
 const scratch = await mkdtemp(join(tmpdir(), 'pdf-citation-trust-'));
+
+async function stagedPageDirectories(): Promise<string[]> {
+  const parent = dirname(PAGES_DIR);
+  const prefix = `${basename(PAGES_DIR)}.staging.${process.pid}.`;
+  return (await readdir(parent))
+    .filter((name) => name.startsWith(prefix))
+    .map((name) => join(parent, name));
+}
+
+async function onlyStagedPageDirectory(): Promise<string> {
+  const directories = await stagedPageDirectories();
+  assert.equal(directories.length, 1, `expected one staged page set, saw ${directories.length}`);
+  return directories[0] as string;
+}
+
+async function discardStagedPageDirectories(): Promise<void> {
+  await Promise.all((await stagedPageDirectories()).map((path) => rm(path, { recursive: true, force: true })));
+}
 
 let counter = 0;
 async function manifestFile(value: CitationManifest): Promise<string> {
@@ -31,6 +50,9 @@ async function manifestFile(value: CitationManifest): Promise<string> {
 function mutate(edit: (draft: any) => void): CitationManifest {
   const draft = JSON.parse(JSON.stringify(manifest));
   edit(draft);
+  const version = versionFor(draft.source.sha256, draft.citations);
+  draft.source.version = version;
+  for (const citation of draft.citations) citation.version = version;
   return draft as CitationManifest;
 }
 
@@ -61,6 +83,17 @@ test('a schema-valid manifest with a tampered excerpt is rejected at runtime', a
     ];
   });
   assert.equal(await trustCode(await manifestFile(tampered)), 'excerpt_not_in_source');
+});
+
+test('citation rectangles must still cover their source words', async () => {
+  const relocated = mutate((draft) => {
+    draft.citations[0].spans = draft.citations[0].spans.map((span: any) => ({
+      ...span,
+      rect: { ...span.rect, x: 0, y: 0 },
+    }));
+  });
+
+  assert.equal(await trustCode(await manifestFile(relocated)), 'citation_geometry_mismatch');
 });
 
 test('a manifest pointing at a different PDF is rejected at runtime', async () => {
@@ -150,7 +183,7 @@ test('a build that is never published leaves the live pages and document untouch
   try {
     // verifiedManifest renders; only publishManifest may promote those renders.
     await verifiedManifest(DEFAULT_SOURCE_PATH);
-    assert.ok(existsSync(STAGING_PAGES_DIR), 'renders must wait in staging');
+    assert.ok(existsSync(await onlyStagedPageDirectory()), 'renders must wait in build-owned staging');
 
     const after = await readPageImages(source.pages.length);
     assert.deepEqual(
@@ -162,7 +195,64 @@ test('a build that is never published leaves the live pages and document untouch
     const trusted = await trustedManifest();
     assert.equal(trusted.source.sha256, source.sha256, 'the published document stays answerable');
   } finally {
-    await rm(STAGING_PAGES_DIR, { recursive: true, force: true });
+    await discardStagedPageDirectories();
+  }
+});
+
+test('concurrent builds keep separate staged pages and serialize publication', async () => {
+  try {
+    const [first, second] = await Promise.all([
+      verifiedManifest(DEFAULT_SOURCE_PATH),
+      verifiedManifest(DEFAULT_SOURCE_PATH),
+    ]);
+    assert.equal((await stagedPageDirectories()).length, 2);
+
+    const firstPath = join(scratch, 'concurrent-first.json');
+    const secondPath = join(scratch, 'concurrent-second.json');
+    await Promise.all([publishManifest(first, firstPath), publishManifest(second, secondPath)]);
+
+    assert.equal(await trustCode(firstPath), 'accepted');
+    assert.equal(await trustCode(secondPath), 'accepted');
+    assert.deepEqual(await stagedPageDirectories(), []);
+  } finally {
+    await discardStagedPageDirectories();
+  }
+});
+
+test('a failed manifest commit restores the previously trusted page set', async () => {
+  const transaction = join(scratch, 'failed-publication');
+  const backup = join(scratch, 'failed-publication-pages');
+  const path = join(transaction, 'manifest.json');
+  const stagingManifest = `${path}.${process.pid}.tmp`;
+  await mkdir(transaction, { recursive: true });
+  await writeFile(path, serializeManifest(manifest));
+  await cp(PAGES_DIR, backup, { recursive: true });
+  const before = await readPageImages(source.pages.length);
+
+  try {
+    const changed = await verifiedManifest(DEFAULT_SOURCE_PATH);
+    const stagedDirectory = await onlyStagedPageDirectory();
+    await appendFile(join(stagedDirectory, pageImageName(1)), Buffer.from([0]));
+    const changedImages = await readPageImages(source.pages.length, stagedDirectory);
+    (changed.source.pages[0] as { imageSha256: string }).imageSha256 = changedImages[0].sha256;
+    assert.notEqual(changedImages[0].sha256, before[0].sha256);
+
+    // Pre-creating the temp file lets its write succeed after the directory becomes read-only;
+    // only the final manifest rename fails, after page promotion has begun.
+    await writeFile(stagingManifest, 'reserved');
+    await chmod(transaction, 0o500);
+    await assert.rejects(publishManifest(changed, path));
+    await chmod(transaction, 0o700);
+
+    const after = await readPageImages(source.pages.length);
+    assert.deepEqual(after.map((image) => image.sha256), before.map((image) => image.sha256));
+    assert.equal(await trustCode(path), 'accepted');
+  } finally {
+    await chmod(transaction, 0o700).catch(() => undefined);
+    await discardStagedPageDirectories();
+    await rm(PAGES_DIR, { recursive: true, force: true });
+    await cp(backup, PAGES_DIR, { recursive: true });
+    await rm(backup, { recursive: true, force: true });
   }
 });
 

@@ -30,7 +30,8 @@ export type ContractErrorCode =
   | 'citation_not_found'
   | 'source_hash_mismatch'
   | 'page_text_mismatch'
-  | 'excerpt_not_in_source';
+  | 'excerpt_not_in_source'
+  | 'citation_geometry_mismatch';
 
 export type ContractError = Readonly<{ code: ContractErrorCode; detail?: string }>;
 
@@ -38,11 +39,11 @@ export type Result<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly error: ContractError };
 
-export function ok<T>(value: T): Result<T> {
+function ok<T>(value: T): Result<T> {
   return { ok: true, value };
 }
 
-export function fail<T = never>(code: ContractErrorCode, detail?: string): Result<T> {
+function fail<T = never>(code: ContractErrorCode, detail?: string): Result<T> {
   return { ok: false, error: detail === undefined ? { code } : { code, detail } };
 }
 
@@ -93,6 +94,7 @@ export type CitationManifest = Readonly<{
 
 const SHA256_PATTERN = /^[0-9a-f]{64}$/;
 const CITATION_ID_PATTERN = /^(doc-[0-9a-f]{12})\.p([1-9][0-9]*)\.c([1-9][0-9]*)$/;
+const SOURCE_VERSION_PATTERN = /^sha256-[0-9a-f]{16}$/;
 
 export function sha256Hex(value: string | Uint8Array): string {
   return createHash('sha256').update(value).digest('hex');
@@ -106,8 +108,12 @@ export function documentIdFor(sha256: string): DocumentId {
   return `doc-${sha256.slice(0, 12)}` as DocumentId;
 }
 
-export function versionFor(sha256: string): SourceVersion {
-  return `sha256-${sha256.slice(0, 16)}` as SourceVersion;
+export function versionFor(
+  sourceSha256: string,
+  citations: readonly Pick<Citation, 'page' | 'excerpt' | 'spans'>[] = [],
+): SourceVersion {
+  const shape = citations.map(({ page, excerpt, spans }) => ({ page, excerpt, spans }));
+  return `sha256-${sha256Hex(`${sourceSha256}\0${JSON.stringify(shape)}`).slice(0, 16)}` as SourceVersion;
 }
 
 export function citationIdFor(documentId: DocumentId, page: number, index: number): CitationId {
@@ -153,7 +159,7 @@ function validateSource(input: unknown): Result<SourceIdentity> {
   if (typeof sha256 !== 'string' || !SHA256_PATTERN.test(sha256)) return fail('invalid_source_hash');
   if (!isContainedRelativePath(sourcePath)) return fail('invalid_source_path');
   if (documentId !== documentIdFor(sha256)) return fail('invalid_document_id');
-  if (version !== versionFor(sha256)) return fail('invalid_source_version');
+  if (typeof version !== 'string' || !SOURCE_VERSION_PATTERN.test(version)) return fail('invalid_source_version');
   if (!isNonEmptyString(title)) return fail('invalid_manifest');
   if (!isPositiveInteger(pageCount)) return fail('invalid_page_count');
   if (!Array.isArray(pages) || pages.length !== pageCount) return fail('invalid_page_count');
@@ -256,6 +262,9 @@ export function validateManifest(input: unknown): Result<CitationManifest> {
     citations.push(citation.value);
   }
 
+  if (source.value.version !== versionFor(source.value.sha256, citations)) {
+    return fail('invalid_source_version');
+  }
   return ok({ schemaVersion: MANIFEST_SCHEMA_VERSION, source: source.value, citations });
 }
 
@@ -278,10 +287,62 @@ export function findCitation(manifest: CitationManifest, id: string): Result<Cit
   return citation === undefined ? fail('citation_not_found', id) : ok(citation);
 }
 
+type SourceWordSnapshot = Readonly<{
+  text: string;
+  xMin: number;
+  yMin: number;
+  xMax: number;
+  yMax: number;
+}>;
+
+type SourcePageSnapshot = Readonly<{
+  page: number;
+  text: string;
+  widthPoints: number;
+  heightPoints: number;
+  lines: readonly Readonly<{ words: readonly SourceWordSnapshot[] }>[];
+}>;
+
 export type SourceSnapshot = Readonly<{
   sha256: string;
-  pages: readonly { page: number; text: string; widthPoints: number; heightPoints: number }[];
+  pages: readonly SourcePageSnapshot[];
 }>;
+
+export function normalizedWordBounds(
+  words: readonly SourceWordSnapshot[],
+  page: Pick<SourcePageSnapshot, 'widthPoints' | 'heightPoints'>,
+): NormalizedRect {
+  const xMin = Math.min(...words.map((word) => word.xMin));
+  const yMin = Math.min(...words.map((word) => word.yMin));
+  const xMax = Math.max(...words.map((word) => word.xMax));
+  const yMax = Math.max(...words.map((word) => word.yMax));
+  const x = Math.min(Math.max(xMin / page.widthPoints, 0), 1);
+  const y = Math.min(Math.max(yMin / page.heightPoints, 0), 1);
+  return {
+    x,
+    y,
+    width: Math.max(Math.min((xMax - xMin) / page.widthPoints, 1 - x), 1e-6),
+    height: Math.max(Math.min((yMax - yMin) / page.heightPoints, 1 - y), 1e-6),
+  };
+}
+
+function sameRect(left: NormalizedRect, right: NormalizedRect): boolean {
+  return (['x', 'y', 'width', 'height'] as const).every((key) => Math.abs(left[key] - right[key]) <= 1e-9);
+}
+
+function spanResolvesToSource(span: CitationSpan, page: SourcePageSnapshot): boolean {
+  for (const line of page.lines) {
+    for (let start = 0; start < line.words.length; start += 1) {
+      for (let end = start + 1; end <= line.words.length; end += 1) {
+        const words = line.words.slice(start, end);
+        const text = words.map((word) => word.text).join(' ');
+        if (!span.text.startsWith(text)) break;
+        if (text === span.text && sameRect(span.rect, normalizedWordBounds(words, page))) return true;
+      }
+    }
+  }
+  return false;
+}
 
 export function verifyPageImages(
   manifest: CitationManifest,
@@ -315,6 +376,7 @@ export function verifyAgainstSource(
   if (snapshot.pages.length !== manifest.source.pageCount) return fail('invalid_page_count');
 
   const normalizedPages = new Map<number, string>();
+  const sourcePages = new Map<number, SourcePageSnapshot>();
   for (const page of snapshot.pages) {
     const normalized = normalizeText(page.text);
     const digest = manifest.source.pages[page.page - 1];
@@ -325,12 +387,17 @@ export function verifyAgainstSource(
       return fail('invalid_page_digest', String(page.page));
     }
     normalizedPages.set(page.page, normalized);
+    sourcePages.set(page.page, page);
   }
 
   for (const citation of manifest.citations) {
     const pageText = normalizedPages.get(citation.page);
     if (pageText === undefined || !pageText.includes(citation.excerpt)) {
       return fail('excerpt_not_in_source', citation.id);
+    }
+    const sourcePage = sourcePages.get(citation.page);
+    if (sourcePage === undefined || citation.spans.some((span) => !spanResolvesToSource(span, sourcePage))) {
+      return fail('citation_geometry_mismatch', citation.id);
     }
   }
 

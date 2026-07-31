@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { afterEach, test } from 'node:test';
 import { completeChat, embedTexts } from '../src/mastra/lib/gateway.ts';
 import { EMBEDDING_DIMENSION } from '../src/mastra/lib/models.ts';
@@ -29,6 +30,22 @@ function stub(response: { status?: number; body?: unknown; raw?: string }): Capt
   }) as unknown as typeof fetch;
   return captured;
 }
+
+test('an invalid gateway timeout fails during startup configuration', () => {
+  const run = spawnSync(process.execPath, [
+    '--experimental-strip-types',
+    '--input-type=module',
+    '--eval',
+    "import './src/mastra/lib/gateway.ts'",
+  ], {
+    cwd: process.cwd(),
+    env: { ...process.env, OMNIROUTE_TIMEOUT_MS: 'not-a-number' },
+    encoding: 'utf8',
+  });
+
+  assert.notEqual(run.status, 0);
+  assert.match(run.stderr, /OMNIROUTE_TIMEOUT_MS/);
+});
 
 test('no request is made for an empty batch', async () => {
   const captured = stub({ body: {} });

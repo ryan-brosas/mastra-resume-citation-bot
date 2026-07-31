@@ -9,6 +9,7 @@ export type IndexResult = Readonly<{ version: string; documentId: string; indexe
 
 export type VectorReplacement = Readonly<{
   documentId: string;
+  version: string;
   ids: readonly string[];
   vectors: readonly number[][];
   metadata: readonly Record<string, unknown>[];
@@ -19,15 +20,16 @@ export type IndexDeps = Readonly<{
   fits: (manifest: CitationManifest) => boolean;
   verify: (sourcePath: string) => Promise<CitationManifest>;
   embed: (texts: readonly string[]) => Promise<number[][]>;
-  replaceVectors: (replacement: VectorReplacement) => Promise<void>;
+  stageVectors: (replacement: VectorReplacement) => Promise<void>;
   publish: (manifest: CitationManifest) => Promise<unknown>;
+  retireVectors: (documentId: string, activeVersion?: string) => Promise<void>;
 }>;
 
 const liveIndexDeps: IndexDeps = {
-  fits: (manifest) => fitsWhole(manifest),
-  verify: (sourcePath) => verifiedManifest(sourcePath),
-  embed: (texts) => embedTexts(texts),
-  replaceVectors: async ({ documentId, ids, vectors, metadata }) => {
+  fits: fitsWhole,
+  verify: verifiedManifest,
+  embed: embedTexts,
+  stageVectors: async ({ ids, vectors, metadata }) => {
     const indexes = await vectorStore.listIndexes();
     if (!indexes.includes(CITATION_INDEX_NAME)) {
       await vectorStore.createIndex({
@@ -37,24 +39,39 @@ const liveIndexDeps: IndexDeps = {
       });
     }
 
-    // deleteFilter makes the removal of superseded vectors part of the insert transaction,
-    // so a failure cannot leave the document with its old vectors deleted and no new ones.
     await vectorStore.upsert({
       indexName: CITATION_INDEX_NAME,
       vectors: [...vectors],
       ids: [...ids],
       metadata: [...metadata],
-      deleteFilter: { documentId },
     });
   },
-  publish: (manifest) => publishManifest(manifest),
+  publish: publishManifest,
+  retireVectors: async (documentId, activeVersion) => {
+    const filter = activeVersion === undefined
+      ? { documentId }
+      : { $and: [{ documentId }, { version: { $ne: activeVersion } }] };
+    await vectorStore.deleteVectors({ indexName: CITATION_INDEX_NAME, filter });
+  },
 };
 
-/**
- * Publishing is what makes a manifest answerable, so it happens only after the vectors backing it
- * are in place. A failure anywhere earlier leaves the previously published document answerable.
- */
+let activationTail = Promise.resolve();
+
+/** One activation at a time, so a later build cannot be retired by an earlier build's cleanup. */
 export async function indexDocument(sourcePath: string, deps: IndexDeps = liveIndexDeps): Promise<IndexResult> {
+  const previous = activationTail;
+  let releaseNext: (() => void) | undefined;
+  activationTail = new Promise<void>((resolve) => { releaseNext = resolve; });
+  await previous;
+  try {
+    return await activateDocument(sourcePath, deps);
+  } finally {
+    releaseNext?.();
+  }
+}
+
+/** Stage vectors under the new version, publish to activate them, then retire older versions. */
+async function activateDocument(sourcePath: string, deps: IndexDeps): Promise<IndexResult> {
   const manifest = await deps.verify(sourcePath);
   const { documentId, version } = manifest.source;
 
@@ -64,6 +81,7 @@ export async function indexDocument(sourcePath: string, deps: IndexDeps = liveIn
    */
   if (deps.fits(manifest)) {
     await deps.publish(manifest);
+    await deps.retireVectors(documentId).catch(() => undefined);
     return { version, documentId, indexedCitations: 0 };
   }
 
@@ -73,9 +91,10 @@ export async function indexDocument(sourcePath: string, deps: IndexDeps = liveIn
     vectors.push(...(await deps.embed(batch.map((citation) => citation.excerpt))));
   }
 
-  await deps.replaceVectors({
+  await deps.stageVectors({
     documentId,
-    ids: manifest.citations.map((citation) => citation.id),
+    version,
+    ids: manifest.citations.map((citation) => `${version}:${citation.id}`),
     vectors,
     metadata: manifest.citations.map((citation) => ({
       citationId: citation.id,
@@ -87,6 +106,7 @@ export async function indexDocument(sourcePath: string, deps: IndexDeps = liveIn
   });
 
   await deps.publish(manifest);
+  await deps.retireVectors(documentId, version).catch(() => undefined);
 
   return { version, documentId, indexedCitations: manifest.citations.length };
 }

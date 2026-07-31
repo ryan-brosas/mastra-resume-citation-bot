@@ -2,14 +2,12 @@ import { type Citation, type CitationManifest, findCitation } from '../../citati
 import { embedTexts } from './gateway.ts';
 import { CITATION_INDEX_NAME, vectorStore } from './vector-store.ts';
 
-export type Evidence = Readonly<{ citation: Citation }>;
-
 /**
  * Similarity search exists to make a corpus fit, not because a subset is desirable. A short document
  * fits whole, and selecting from it can only lose evidence — which is how a question like "which role
  * lasted longest" gets answered from six of eight roles. Above the budget, selection resumes.
  */
-export const CONTEXT_BUDGET_CHARS = 24000;
+const CONTEXT_BUDGET_CHARS = 24000;
 
 export function fitsWhole(manifest: CitationManifest, budget: number = CONTEXT_BUDGET_CHARS): boolean {
   return manifest.citations.reduce((total, citation) => total + citation.excerpt.length, 0) <= budget;
@@ -42,17 +40,17 @@ export async function retrieveEvidence(
   query: string,
   manifest: CitationManifest,
   options: RetrievalOptions = {},
-): Promise<readonly Evidence[]> {
+): Promise<readonly Citation[]> {
   const { topK = 6, search = searchIndex, budget = CONTEXT_BUDGET_CHARS } = options;
 
   // Document order, not relevance order: comparing entries needs them in the order they were written.
-  if (fitsWhole(manifest, budget)) return manifest.citations.map((citation) => ({ citation }));
+  if (fitsWhole(manifest, budget)) return manifest.citations;
 
-  const evidence: Evidence[] = [];
+  const evidence: Citation[] = [];
   for (const id of await search(query, manifest, topK)) {
     const citation = findCitation(manifest, id);
     if (!citation.ok) continue;
-    evidence.push({ citation: citation.value });
+    evidence.push(citation.value);
   }
   return evidence;
 }

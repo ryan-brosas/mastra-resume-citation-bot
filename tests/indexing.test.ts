@@ -17,13 +17,14 @@ type Recorded = {
   batches: number[];
   replacements: VectorReplacement[];
   published: CitationManifest[];
+  retired: { documentId: string; activeVersion?: string }[];
 };
 
 function harness(
   overrides: Partial<IndexDeps> = {},
   indexed: CitationManifest = manifest,
 ): { deps: IndexDeps; recorded: Recorded } {
-  const recorded: Recorded = { calls: [], batches: [], replacements: [], published: [] };
+  const recorded: Recorded = { calls: [], batches: [], replacements: [], published: [], retired: [] };
   let embedded = 0;
   const deps: IndexDeps = {
     fits: () => false,
@@ -37,8 +38,8 @@ function harness(
       // Each vector encodes its global position so reordering across batches is detectable.
       return texts.map(() => [embedded++]);
     },
-    replaceVectors: async (replacement) => {
-      recorded.calls.push('replaceVectors');
+    stageVectors: async (replacement) => {
+      recorded.calls.push('stageVectors');
       recorded.replacements.push(replacement);
     },
     publish: async (published) => {
@@ -46,17 +47,45 @@ function harness(
       recorded.published.push(published);
       return published;
     },
+    retireVectors: async (documentId, activeVersion) => {
+      recorded.calls.push('retireVectors');
+      recorded.retired.push({ documentId, activeVersion });
+    },
     ...overrides,
   };
   return { deps, recorded };
 }
 
+test('manifest versions distinguish different citation chunking of the same source', () => {
+  assert.notEqual(multiBatchManifest.source.version, manifest.source.version);
+});
+
+test('concurrent index activations are serialized', async () => {
+  let active = 0;
+  let maximum = 0;
+  const { deps } = harness({
+    verify: async () => {
+      active += 1;
+      maximum = Math.max(maximum, active);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return manifest;
+    },
+    publish: async (published) => {
+      active -= 1;
+      return published;
+    },
+  });
+
+  await Promise.all([indexDocument(DEFAULT_SOURCE_PATH, deps), indexDocument(DEFAULT_SOURCE_PATH, deps)]);
+  assert.equal(maximum, 1);
+});
+
 test('a successful index publishes only after the vectors are in place', async () => {
   const { deps, recorded } = harness();
   const result = await indexDocument(DEFAULT_SOURCE_PATH, deps);
 
-  assert.deepEqual(recorded.calls, ['verify', 'embed', 'replaceVectors', 'publish']);
-  assert.ok(recorded.calls.indexOf('publish') > recorded.calls.indexOf('replaceVectors'));
+  assert.deepEqual(recorded.calls, ['verify', 'embed', 'stageVectors', 'publish', 'retireVectors']);
+  assert.ok(recorded.calls.indexOf('publish') > recorded.calls.indexOf('stageVectors'));
   assert.deepEqual(result, {
     version: manifest.source.version,
     documentId: manifest.source.documentId,
@@ -74,19 +103,42 @@ test('a failed embed leaves the previously published document answerable', async
 
   await assert.rejects(indexDocument(DEFAULT_SOURCE_PATH, deps), /embedding provider unavailable/);
   assert.ok(!recorded.calls.includes('publish'), 'publish must not run after an embed failure');
-  assert.ok(!recorded.calls.includes('replaceVectors'), 'vectors must not be replaced after an embed failure');
+  assert.ok(!recorded.calls.includes('stageVectors'), 'vectors must not be staged after an embed failure');
 });
 
-test('a failed vector replacement leaves the previously published document answerable', async () => {
+test('a failed vector staging leaves the previously published document answerable', async () => {
   const { deps, recorded } = harness({
-    replaceVectors: async () => {
-      recorded.calls.push('replaceVectors');
+    stageVectors: async () => {
+      recorded.calls.push('stageVectors');
       throw new Error('vector store rejected the transaction');
     },
   });
 
   await assert.rejects(indexDocument(DEFAULT_SOURCE_PATH, deps), /vector store rejected the transaction/);
   assert.ok(!recorded.calls.includes('publish'), 'publish must not run after an upsert failure');
+});
+
+test('a failed publication leaves the prior vector activation queryable', async () => {
+  const queryable = new Set<string>([manifest.source.version]);
+  const { deps, recorded } = harness({
+    stageVectors: async (replacement) => {
+      recorded.calls.push('stageVectors');
+      recorded.replacements.push(replacement);
+      queryable.add(replacement.version);
+    },
+    publish: async () => {
+      recorded.calls.push('publish');
+      throw new Error('manifest commit failed');
+    },
+    retireVectors: async (_documentId, activeVersion) => {
+      recorded.calls.push('retireVectors');
+      for (const version of queryable) if (version !== activeVersion) queryable.delete(version);
+    },
+  }, multiBatchManifest);
+
+  await assert.rejects(indexDocument(DEFAULT_SOURCE_PATH, deps), /manifest commit failed/);
+  assert.ok(queryable.has(manifest.source.version), 'the live manifest must retain its vector activation');
+  assert.ok(!recorded.calls.includes('retireVectors'), 'old vectors retire only after publication');
 });
 
 test('a failed verification never reaches embedding, replacement, or publication', async () => {
@@ -107,7 +159,11 @@ test('vectors are keyed by citation id and scoped to the document being replaced
 
   const [replacement] = recorded.replacements;
   assert.equal(replacement.documentId, manifest.source.documentId);
-  assert.deepEqual(replacement.ids, manifest.citations.map((citation) => citation.id));
+  assert.equal(replacement.version, manifest.source.version);
+  assert.deepEqual(
+    replacement.ids,
+    manifest.citations.map((citation) => `${manifest.source.version}:${citation.id}`),
+  );
   assert.equal(replacement.vectors.length, manifest.citations.length);
   assert.equal(replacement.metadata.length, manifest.citations.length);
   assert.deepEqual(
@@ -135,7 +191,10 @@ test('a manifest larger than one batch is embedded in order across batches', asy
     replacement.vectors.map((entry) => entry[0]),
     Array.from({ length: total }, (_, position) => position),
   );
-  assert.deepEqual(replacement.ids, multiBatchManifest.citations.map((citation) => citation.id));
+  assert.deepEqual(
+    replacement.ids,
+    multiBatchManifest.citations.map((citation) => `${multiBatchManifest.source.version}:${citation.id}`),
+  );
 });
 
 test('a failure in a later batch prevents vector replacement and publication', async () => {
@@ -152,7 +211,7 @@ test('a failure in a later batch prevents vector replacement and publication', a
 
   await assert.rejects(indexDocument(DEFAULT_SOURCE_PATH, failing), /died mid-corpus/);
   assert.equal(recorded.batches.length, 2, 'failure must occur on the second batch');
-  assert.ok(!recorded.calls.includes('replaceVectors'), 'vectors must not be replaced');
+  assert.ok(!recorded.calls.includes('stageVectors'), 'vectors must not be staged');
   assert.ok(!recorded.calls.includes('publish'), 'publish must not run');
 });
 
@@ -168,7 +227,7 @@ test('a document that fits the retrieval budget is published without being embed
   const { deps, recorded } = harness({ fits: () => true });
   const result = await indexDocument(DEFAULT_SOURCE_PATH, deps);
 
-  assert.deepEqual(recorded.calls, ['verify', 'publish'], 'a whole-fitting document needs no vectors');
+  assert.deepEqual(recorded.calls, ['verify', 'publish', 'retireVectors'], 'a whole-fitting document needs no vectors');
   assert.equal(result.indexedCitations, 0);
   assert.deepEqual(recorded.published.map((entry) => entry.source.version), [manifest.source.version]);
 });
@@ -178,5 +237,5 @@ test('a document over the budget is still embedded and indexed before publicatio
   await indexDocument(DEFAULT_SOURCE_PATH, deps);
 
   assert.ok(recorded.calls.includes('embed'), 'an oversized document must still be embedded');
-  assert.ok(recorded.calls.indexOf('publish') > recorded.calls.indexOf('replaceVectors'));
+  assert.ok(recorded.calls.indexOf('publish') > recorded.calls.indexOf('stageVectors'));
 });

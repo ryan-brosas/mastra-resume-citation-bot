@@ -4,7 +4,7 @@
     "sha256": "4adde89b07f1f59fa6772a14e86e66e5d96389d32dc6fe230e8f2eb9635225dd",
     "sourcePath": "documents/sample.pdf",
     "documentId": "doc-4adde89b07f1",
-    "version": "sha256-4adde89b07f1f59f",
+    "version": "sha256-b0d003dc6250f228",
     "title": "sample",
     "pageCount": 3,
     "renderer": {
@@ -39,7 +39,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c1",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — ● SYSTEM READOUT / RYAN BROSAS / 2026 RYAN JOSE BROSAS",
       "excerpt": "● SYSTEM READOUT / RYAN BROSAS / 2026 RYAN JOSE BROSAS",
@@ -76,7 +76,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c2",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — AI ENGINEER / AGENT SYSTEMS BUILDER Building systems so everything does…",
       "excerpt": "AI ENGINEER / AGENT SYSTEMS BUILDER Building systems so everything doesn't need you.",
@@ -122,7 +122,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c3",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — AI agents and automation that do real work in production. Model-agnosti…",
       "excerpt": "AI agents and automation that do real work in production. Model-agnostic, and built on data that actually holds up.",
@@ -150,7 +150,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c4",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — LOCATION FOCUS CONTACT STATUS Metro Manila, PH AI agents & automation r…",
       "excerpt": "LOCATION FOCUS CONTACT STATUS Metro Manila, PH AI agents & automation ryanjoserbrosas@gmail.com ● Open to work",
@@ -178,7 +178,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c5",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — // BUILD TypeScript Pydantic AI Mastra AI SDK OpenCode pi.dev",
       "excerpt": "// BUILD TypeScript Pydantic AI Mastra AI SDK OpenCode pi.dev",
@@ -206,7 +206,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c6",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — // MODELS Claude OpenAI GLM DeepSeek Kimi",
       "excerpt": "// MODELS Claude OpenAI GLM DeepSeek Kimi",
@@ -234,7 +234,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c7",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — // SYSTEMS RAG MCP servers n8n Clay HubSpot Apify PhantomBuster",
       "excerpt": "// SYSTEMS RAG MCP servers n8n Clay HubSpot Apify PhantomBuster",
@@ -262,7 +262,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c8",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — SUMMARY Somewhere in your workflow there are 20 hours a week that an AI…",
       "excerpt": "SUMMARY Somewhere in your workflow there are 20 hours a week that an AI agent should already be doing. I build AI agents and automation that take that off your team every week. I have worked across design, web, support, marketing, and client delivery so I know how teams operate. I got into AI by building. One day an n8n workflow clicked and I went deep on agents, prompts, and RAG. Now I build scrapers, research and outreach agents, and MCP",
@@ -344,7 +344,7 @@
     {
       "id": "doc-4adde89b07f1.p1.c9",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 1,
       "label": "p.1 — servers that run in production. I do not lock into one model vendor so…",
       "excerpt": "servers that run in production. I do not lock into one model vendor so I pick the right one for the job. But a good AI system is only as good as what is under it. I think a lot about data architecture, how it is structured, where it comes from, and how it flows through the system. That is what makes agents actually reliable.",
@@ -399,7 +399,7 @@
     {
       "id": "doc-4adde89b07f1.p2.c1",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 2,
       "label": "p.2 — I care about the whole system. What breaks, and who checks the work. An…",
       "excerpt": "I care about the whole system. What breaks, and who checks the work. And I always tell you what worked and what did not.",
@@ -427,7 +427,7 @@
     {
       "id": "doc-4adde89b07f1.p2.c2",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 2,
       "label": "p.2 — EXPERIENCE · BUILD LOG 01 GTM & Automation Specialist",
       "excerpt": "EXPERIENCE · BUILD LOG 01 GTM & Automation Specialist",
@@ -455,7 +455,7 @@
     {
       "id": "doc-4adde89b07f1.p2.c3",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 2,
       "label": "p.2 — LATEST Brainforge · Oct 2025 - Mar 2026 Saved the team 10 to 15 hours e…",
       "excerpt": "LATEST Brainforge · Oct 2025 - Mar 2026 Saved the team 10 to 15 hours every week by building a repeatable process others could run to find and reach leads, using Clay, HubSpot, Apify, and PhantomBuster. Brought in 3 to 5 solid leads per campaign, running each one from start to finish. Set up HubSpot to update itself, so no one had to fix records by hand. Added a prequalification step, mostly automated with a light review, that filtered out weak leads so the",
@@ -528,7 +528,7 @@
     {
       "id": "doc-4adde89b07f1.p2.c4",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 2,
       "label": "p.2 — team only worked the ones worth chasing.",
       "excerpt": "team only worked the ones worth chasing.",
@@ -547,7 +547,7 @@
     {
       "id": "doc-4adde89b07f1.p2.c5",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 2,
       "label": "p.2 — 02 GTM & Ghostwriter Brainforge · Sep 2024 - Oct 2025 Grew the blog to…",
       "excerpt": "02 GTM & Ghostwriter Brainforge · Sep 2024 - Oct 2025 Grew the blog to 915,000 Google search impressions and 1,690 clicks, at an average search position of 8.1. Grew LinkedIn content to 206,405 impressions, up 616% in a year. Got Brainforge's content cited in AI answers like ChatGPT and Claude, by writing it to be picked up by LLMs, not just ranked on Google. Brought the account to 3,824 profile viewers with steady, ghostwritten posts.",
@@ -629,7 +629,7 @@
     {
       "id": "doc-4adde89b07f1.p2.c6",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 2,
       "label": "p.2 — 03 Copywriter, Web Designer & Developer, Graphic Designer Upwork (Freel…",
       "excerpt": "03 Copywriter, Web Designer & Developer, Graphic Designer Upwork (Freelance) · Jan 2024 - Present Design and build fast, simple WordPress sites for all kinds of clients. Grew client blog traffic by 20 to 30% with SEO and clear writing. Turned that into real results: podcast invites, partnerships, and booked calls.",
@@ -684,7 +684,7 @@
     {
       "id": "doc-4adde89b07f1.p2.c7",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 2,
       "label": "p.2 — 04 Process Associate / Quality Control Analyst TT Active Digital Market…",
       "excerpt": "04 Process Associate / Quality Control Analyst TT Active Digital Marketing · Laguna · Jul 2022 - Sep 2024 Brought in 10% more qualified leads and raised call quality by 30%, hitting every quality goal for 6 months straight.",
@@ -730,7 +730,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c1",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — 05 Outsourcing Manager Demicreation Digital Solution · Aug 2019 - Sep 2…",
       "excerpt": "05 Outsourcing Manager Demicreation Digital Solution · Aug 2019 - Sep 2024 Closed 20 to 30% more deals and set up offshore teams across the Philippines, India, and Pakistan, keeping clients and call centers aligned.",
@@ -776,7 +776,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c2",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — 06 Client Fulfillment Manager WritersER · Nov 2023 - Jul 2024 Made clie…",
       "excerpt": "06 Client Fulfillment Manager WritersER · Nov 2023 - Jul 2024 Made clients 20 to 30% happier and the team 50% more efficient; hired across dev, video, QA, and writing, and set clear SOPs.",
@@ -822,7 +822,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c3",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — 07 Samsung Experience Specialist Samsung Mobile · Jan 2018 - Dec 2019 C…",
       "excerpt": "07 Samsung Experience Specialist Samsung Mobile · Jan 2018 - Dec 2019 Closed 700+ deals and grew store sales by 70%, driving half of the store's top-phone sales with a simple who, what, why approach.",
@@ -868,7 +868,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c4",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — 08 Quality Assurance Specialist Bluelogic Solutions Inc. · Muntinlupa ·…",
       "excerpt": "08 Quality Assurance Specialist Bluelogic Solutions Inc. · Muntinlupa · Sep 2018 - Aug 2019 Trained a new QA from scratch, and raised campaign quality by 20 to 30% using data.",
@@ -905,7 +905,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c5",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — CERTIFICATIONS, EDUCATION & MORE",
       "excerpt": "CERTIFICATIONS, EDUCATION & MORE",
@@ -924,7 +924,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c6",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — CERTIFICATIONS EDUCATION Google Project Management Adamson University C…",
       "excerpt": "CERTIFICATIONS EDUCATION Google Project Management Adamson University Conversion Copywriting (Foundations) THEFUTUR Strategy, Process, UI/UX, Design Fundamentals Direct Response Copywriting COURSERA",
@@ -988,7 +988,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c7",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — ClickUp Admin & Novice Ongoing coursework",
       "excerpt": "ClickUp Admin & Novice Ongoing coursework",
@@ -1007,7 +1007,7 @@
     {
       "id": "doc-4adde89b07f1.p3.c8",
       "documentId": "doc-4adde89b07f1",
-      "version": "sha256-4adde89b07f1f59f",
+      "version": "sha256-b0d003dc6250f228",
       "page": 3,
       "label": "p.3 — LANGUAGES // WHAT'S NEXT Better testing, more case studies, and the nex…",
       "excerpt": "LANGUAGES // WHAT'S NEXT Better testing, more case studies, and the next Tagalog native thing to learn. Always building. English native / bilingual",

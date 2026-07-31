@@ -52,12 +52,13 @@ enforced at query time, not only by the CLI:
 | Manifest missing or source unreadable | `manifest_missing` / `source_unreadable` |
 | A page render drifts from the manifest | `page_image_mismatch` |
 | A rect is out of bounds, degenerate, or whole-page | `invalid_rectangle` / `whole_page_rectangle` |
-| Model invents a citation id | marker stripped, id recorded as rejected by the validator |
-| Model cites a real passage it was never shown | marker stripped |
-| Model emits its own `[1]`-style marker | marker stripped |
+| Model invents a citation id | marker and its now-uncited claim are removed |
+| Model cites a real passage it was never shown | marker and its now-uncited claim are removed |
+| Model emits its own `[1]`-style marker | marker and its now-uncited claim are removed |
+| Model emits a claim without a validated citation | claim removed; an empty answer becomes the controlled no-evidence answer |
 
-At the public boundary these become one of `invalid_question`, `unresolved_followup`,
-`payload_too_large`, `manifest_unavailable`, `retrieval_failed`, or `model_failed` — never a stack
+Operational failures at the public boundary become one of `invalid_question`, `unresolved_followup`,
+`payload_too_large`, `overloaded`, `manifest_unavailable`, `retrieval_failed`, or `model_failed` — never a stack
 trace or partial answer.
 
 ## Usage
@@ -75,6 +76,26 @@ pnpm dev                      # web UI at http://localhost:4111/ask
 `pnpm dev` intentionally binds to `127.0.0.1`. The UI has no authentication and serves the real
 résumé, so do not expose port 4111 to a LAN or the internet without adding an access-control layer.
 
+### Production artifact
+
+```bash
+pnpm build
+pnpm artifact:verify
+(cd .mastra/output && NODE_ENV=production node index.mjs)
+```
+
+The build packages the UI, trusted manifest, rendered pages, and source PDF into `.mastra/output`.
+`artifact:verify` copies that output into an isolated directory and proves the shell, assets, readiness,
+and page delivery work without access to the source checkout.
+
+Production defaults to a loopback listener and disables CORS. A non-loopback bind is refused unless
+`RESUME_BOT_ALLOW_PUBLIC=true` is set alongside `MASTRA_HOST`. Use that override only behind a
+TLS-terminating access-control layer with request and concurrency limits. The process rejects more
+than four concurrent answer jobs, but does not provide public authentication or rate limiting itself.
+
+- `GET /healthz` reports process liveness.
+- `GET /readyz` returns 200 only while the trusted manifest is available.
+
 ### Ways to ask
 
 | Surface | Command |
@@ -89,13 +110,13 @@ serves them only after `trustedManifest()` has confirmed the render matches its 
 
 `POST /ask/answer` takes `{ "question": "…", "history": […] }` and returns
 `{ answer, citations, pages, unsupported, version }`, or `{ code }` with 400 (`invalid_question`),
-413 (`payload_too_large`), 422 (`unresolved_followup`), 502 (`model_failed`), or 503
+413 (`payload_too_large`), 422 (`unresolved_followup`), 429 (`overloaded`), 502 (`model_failed`), or 503
 (`manifest_unavailable`, `retrieval_failed`). Internals never cross that boundary.
 
-Paths resolve from the project root, located by walking up from the working directory — `mastra build`
-relocates modules into `.mastra/output` and the dev server chdirs into `src/mastra/public`, so neither
-`import.meta.url` nor `process.cwd()` is reliable on its own. Override with `PDF_CITATION_ROOT` and
-`PDF_CITATION_DB`.
+Paths resolve from the nearest packaged project root. Development walks up from the working directory;
+`pnpm build` copies every runtime asset under `.mastra/output`, which becomes the root when the artifact
+runs by itself. Override with `PDF_CITATION_ROOT` and `PDF_CITATION_DB` when assets or durable LibSQL
+storage are mounted elsewhere.
 
 Index a different PDF:
 
@@ -119,7 +140,7 @@ project relies on but does not itself test.
 
 Embedding and generation both go through a local [OmniRoute](https://github.com/diegosouzapw/OmniRoute)
 gateway at `http://127.0.0.1:20128/v1`, which needs no API key. Override with `OMNIROUTE_URL`,
-`OMNIROUTE_API_KEY`, and `OMNIROUTE_ANSWER_MODEL`.
+`OMNIROUTE_API_KEY`, `OMNIROUTE_ANSWER_MODEL`, and the validated `OMNIROUTE_TIMEOUT_MS`.
 
 | Use | Model | Why |
 | --- | --- | --- |

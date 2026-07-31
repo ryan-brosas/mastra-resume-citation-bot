@@ -24,7 +24,7 @@ function deps(overrides: Partial<AnswerDeps> = {}): AnswerDeps {
   return {
     standalone: async () => 'rewritten standalone question',
     manifest: async () => manifest,
-    retrieve: async () => [{ citation: first }, { citation: second }],
+    retrieve: async () => [first, second],
     generate: async () => `Alpha [[${first.id}]].`,
     ...overrides,
   };
@@ -86,7 +86,7 @@ test('the quote is the part of the excerpt the claim used, and stays verbatim wi
   assert.ok(fragment !== undefined);
 
   const result = await answerWithCitations('What does it say?', [], deps({
-    retrieve: async () => [{ citation: wide }],
+    retrieve: async () => [wide],
     generate: async () => `${fragment.text} [[${wide.id}]].`,
   }));
 
@@ -113,7 +113,7 @@ test('the quote is the whole excerpt when nothing narrows', async () => {
   assert.ok(citation !== undefined);
 
   const result = await answerWithCitations('What does it say?', [], deps({
-    retrieve: async () => [{ citation }],
+    retrieve: async () => [citation],
     generate: async () => `Zebra xylophone quokka marzipan [[${citation.id}]].`,
   }));
 
@@ -159,7 +159,7 @@ test('one claim cannot widen another citation highlight', async () => {
   assert.ok(ownClaim < bothClaims, 'the fixture must distinguish the two claims');
 
   const result = await answerWithCitations('What does it say?', [], deps({
-    retrieve: async () => [{ citation: wide }, { citation: other }],
+    retrieve: async () => [wide, other],
     generate: async () => `${mine.text} [[${wide.id}]]. ${theirs.text} [[${other.id}]].`,
   }));
 
@@ -235,12 +235,32 @@ test('a grounded answer returns renumbered markers and resolved citations', asyn
   assert.deepEqual(result.citations.map((citation) => citation.id), [first.id, second.id]);
 });
 
+test('an uncited model claim is replaced with the controlled no-evidence answer', async () => {
+  const result = await answerWithCitations('What does Ryan do?', [], deps({
+    generate: async () => 'Ryan is a neurosurgeon.',
+  }));
+
+  assert.equal(result.answer, NO_EVIDENCE_ANSWER);
+  assert.deepEqual(result.citations, []);
+  assert.deepEqual(result.pages, []);
+});
+
+test('a markerless line cannot borrow a citation from a later line', async () => {
+  const result = await answerWithCitations('What did Ryan build?', [], deps({
+    generate: async () => `- Ryan is a neurosurgeon
+- Built the supported thing [[${first.id}]]`,
+  }));
+
+  assert.equal(result.answer, '- Built the supported thing [1]');
+  assert.deepEqual(result.citations.map((citation) => citation.id), [first.id]);
+});
+
 test('a fabricated citation id never reaches the caller', async () => {
   const result = await answerWithCitations('What did Ryan build?', [], deps({
     generate: async () => `Real [[${first.id}]]. Fake [[${manifest.source.documentId}.p1.c9999]].`,
   }));
 
-  assert.equal(result.answer, 'Real [1]. Fake.');
+  assert.equal(result.answer, 'Real [1].');
   assert.deepEqual(result.citations.map((citation) => citation.id), [first.id]);
 });
 
@@ -249,6 +269,7 @@ test('a real citation the model was never shown never reaches the caller', async
     generate: async () => `Shown [[${first.id}]]. Unshown [[${third.id}]].`,
   }));
 
+  assert.equal(result.answer, 'Shown [1].');
   assert.deepEqual(result.citations.map((citation) => citation.id), [first.id]);
   assert.ok(!result.answer.includes(third.id));
 });
@@ -258,7 +279,7 @@ test('model-authored reader-style markers are stripped instead of passing as cit
     generate: async () => `Alpha [1]. Beta [2,3]. Gamma [[${first.id}]].`,
   }));
 
-  assert.equal(result.answer, 'Alpha. Beta. Gamma [1].');
+  assert.equal(result.answer, 'Gamma [1].');
   assert.deepEqual(result.citations.map((citation) => citation.id), [first.id]);
 });
 
@@ -276,7 +297,7 @@ test('a follow-up is resolved against the conversation before retrieval', async 
       },
       retrieve: async (query) => {
         searched.push(query);
-        return [{ citation: first }];
+        return [first];
       },
     }),
   );
@@ -297,7 +318,7 @@ test('a first question is retrieved as asked, with no rewrite', async () => {
     },
     retrieve: async (query) => {
       searched.push(query);
-      return [{ citation: first }];
+      return [first];
     },
   }));
 
@@ -312,7 +333,7 @@ test('an unusable rewrite falls back to a question that can stand on its own', a
       standalone: async () => rewritten,
       retrieve: async (query) => {
         searched.push(query);
-        return [{ citation: first }];
+        return [first];
       },
     }));
     assert.deepEqual(searched, ['and at Samsung?'], 'an empty or oversized rewrite must not be used');
@@ -342,7 +363,7 @@ test('a citation stripped by figure grounding is not listed as a source', async 
   assert.ok(beta !== undefined, 'the fixture needs citations on different pages');
 
   const result = await answerWithCitations('What does it say?', [], deps({
-    retrieve: async () => [{ citation: alpha }, { citation: beta }],
+    retrieve: async () => [alpha, beta],
     // The first claim invents a figure; the second quotes its passage faithfully.
     generate: async () =>
       `He managed 4242 engineers. [[${alpha.id}]] ${beta.spans[0]!.text} [[${beta.id}]]`,
@@ -355,7 +376,9 @@ test('a citation stripped by figure grounding is not listed as a source', async 
   // The survivor is renumbered so the reader never sees a gap or a source without a marker.
   assert.match(result.answer, /\[1\]/);
   assert.doesNotMatch(result.answer, /\[2\]/);
-  assert.match(result.answer, /He managed 4242 engineers\./, 'the claim itself is left, just uncited');
+  // The unevidenced claim is dropped entirely: a sentence with no surviving validated citation
+  // must not reach the reader, even if the model originally attached a marker to it.
+  assert.doesNotMatch(result.answer, /He managed 4242 engineers/);
 
   assert.deepEqual(result.pages.map((page) => page.page), [beta.page], 'pages follow the compacted set');
 });
@@ -365,7 +388,7 @@ test('grounding that strips every citation leaves no sources at all', async () =
   assert.ok(alpha !== undefined);
 
   const result = await answerWithCitations('What does it say?', [], deps({
-    retrieve: async () => [{ citation: alpha }],
+    retrieve: async () => [alpha],
     generate: async () => `Revenue grew by 9999 percent. [[${alpha.id}]]`,
   }));
 
@@ -380,12 +403,12 @@ test('a rewrite that fails degrades to the question when it can stand alone', as
 
   const result = await answerWithCitations('and at Samsung?', [{ question: 'q', answer: 'a' }], deps({
     standalone: async () => { throw new Error('gateway /chat/completions timed out'); },
-    retrieve: async (query) => { searched.push(query); return [{ citation: first }]; },
-    generate: async () => 'Something grounded.',
+    retrieve: async (query) => { searched.push(query); return [first]; },
+    generate: async () => `Something grounded. [[${first.id}]]`,
   }));
 
   assert.deepEqual(searched, ['and at Samsung?'], 'retrieval must still run, on the raw question');
-  assert.equal(result.answer, 'Something grounded.');
+  assert.equal(result.answer, 'Something grounded. [1]');
 });
 
 test('a never-settling rewrite is abandoned at the deadline instead of hanging', async () => {
@@ -395,13 +418,13 @@ test('a never-settling rewrite is abandoned at the deadline instead of hanging',
   const result = await answerWithCitations('and what about Samsung?', [{ question: 'q', answer: 'a' }], deps({
     deadlineMs: 25,
     standalone: () => new Promise<string>(() => {}),
-    retrieve: async (query) => { searched.push(query); return [{ citation: first }]; },
-    generate: async () => 'Something grounded.',
+    retrieve: async (query) => { searched.push(query); return [first]; },
+    generate: async () => `Something grounded. [[${first.id}]]`,
   }));
 
   assert.ok(Date.now() - started < 2000, 'the request must not wait on a dependency that never settles');
   assert.deepEqual(searched, ['and what about Samsung?']);
-  assert.equal(result.answer, 'Something grounded.');
+  assert.equal(result.answer, 'Something grounded. [1]');
 });
 
 test('a contentless follow-up that cannot be resolved is refused, not answered from anything nearby', async () => {
@@ -416,7 +439,7 @@ test('a contentless follow-up that cannot be resolved is refused, not answered f
       answerWithCitations('what else?', [{ question: 'q', answer: 'a' }], deps({
         deadlineMs: 25,
         standalone,
-        retrieve: async () => { retrieved += 1; return [{ citation: first }]; },
+        retrieve: async () => { retrieved += 1; return [first]; },
       })),
     );
 
@@ -450,7 +473,7 @@ test('a rewrite that resolved nothing is refused rather than searched on', async
     const code = await codeOf(
       answerWithCitations('what else?', [{ question: 'q', answer: 'a' }], deps({
         standalone: async () => echoed,
-        retrieve: async () => { retrieved += 1; return [{ citation: first }]; },
+        retrieve: async () => { retrieved += 1; return [first]; },
       })),
     );
 
@@ -465,7 +488,7 @@ test('a rewrite that resolves the follow-up is still used', async () => {
 
   await answerWithCitations('what else?', [{ question: 'What did he do at Brainforge?', answer: 'GTM work.' }], deps({
     standalone: async () => 'What else did he do at Brainforge?',
-    retrieve: async (query) => { searched.push(query); return [{ citation: first }]; },
+    retrieve: async (query) => { searched.push(query); return [first]; },
     generate: async () => 'Something grounded.',
   }));
 

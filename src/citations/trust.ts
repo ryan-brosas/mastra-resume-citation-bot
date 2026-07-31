@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { existsSync, rmSync } from 'node:fs';
 import { copyFile, mkdir, mkdtemp, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -15,7 +16,6 @@ import {
 import {
   MANIFEST_PATH,
   PAGES_DIR,
-  STAGING_PAGES_DIR,
   type PageImage,
   buildManifest,
   extractSource,
@@ -49,65 +49,141 @@ async function sourceDigestOf(resolvedPath: string): Promise<string> {
   }
 }
 
-/** Renders into staging only. Live page assets are untouched until publication promotes them. */
-async function renderPages(pdfPath: string, pageCount: number): Promise<PageImage[]> {
-  const scratch = await mkdtemp(join(tmpdir(), 'pdf-citation-render-'));
-  try {
-    await rm(STAGING_PAGES_DIR, { recursive: true, force: true });
-    await mkdir(STAGING_PAGES_DIR, { recursive: true });
-    // A build that is never published — a failed index, say — must not leave renders behind.
-    discardStagedPagesOnExit();
+const stagedPagesByManifest = new WeakMap<CitationManifest, string>();
+const stagedDirectories = new Set<string>();
+let exitCleanupRegistered = false;
+let publicationTail = Promise.resolve();
 
+/** Renders into build-owned staging only. Live page assets stay untouched until publication. */
+async function renderPages(pdfPath: string, pageCount: number): Promise<{ images: PageImage[]; directory: string }> {
+  const scratch = await mkdtemp(join(tmpdir(), 'pdf-citation-render-'));
+  const directory = `${PAGES_DIR}.staging.${process.pid}.${randomUUID()}`;
+  stagedDirectories.add(directory);
+  discardStagedPagesOnExit();
+  try {
+    await mkdir(directory, { recursive: true });
     for (let page = 1; page <= pageCount; page += 1) {
       await renderPage(pdfPath, page, join(scratch, `p${page}`));
       const produced = (await readdir(scratch)).find((name) => name.startsWith(`p${page}-`));
       if (produced === undefined) throw new ManifestTrustError('render_failed');
-      await copyFile(join(scratch, produced), resolve(STAGING_PAGES_DIR, pageImageName(page)));
+      await copyFile(join(scratch, produced), resolve(directory, pageImageName(page)));
     }
-
-    return readPageImages(pageCount, STAGING_PAGES_DIR);
+    return { images: await readPageImages(pageCount, directory), directory };
   } catch (error) {
-    await rm(STAGING_PAGES_DIR, { recursive: true, force: true });
+    stagedDirectories.delete(directory);
+    await rm(directory, { recursive: true, force: true });
     throw error instanceof ManifestTrustError ? error : new ManifestTrustError('render_failed');
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
 }
 
-let exitCleanupRegistered = false;
-
 function discardStagedPagesOnExit(): void {
   if (exitCleanupRegistered) return;
   exitCleanupRegistered = true;
   process.once('exit', () => {
-    // Promotion renames the directory away, so anything still here was never published.
-    rmSync(STAGING_PAGES_DIR, { recursive: true, force: true });
+    for (const directory of stagedDirectories) rmSync(directory, { recursive: true, force: true });
   });
 }
 
-/** One directory rename, so readers never see a half-promoted page set. */
-async function promoteStagedPages(): Promise<void> {
-  const retired = `${PAGES_DIR}.retired.${process.pid}`;
-  if (existsSync(PAGES_DIR)) await rename(PAGES_DIR, retired);
-  await rename(STAGING_PAGES_DIR, PAGES_DIR);
-  await rm(retired, { recursive: true, force: true });
+async function commitPublication(serialized: string, manifestPath: string, stagedDirectory?: string): Promise<void> {
+  const previous = publicationTail;
+  let releaseNext: (() => void) | undefined;
+  publicationTail = new Promise<void>((resolve) => { releaseNext = resolve; });
+  await previous;
+  try {
+    await commitPublicationUnlocked(serialized, manifestPath, stagedDirectory);
+  } finally {
+    releaseNext?.();
+  }
+}
+
+async function commitPublicationUnlocked(
+  serialized: string,
+  manifestPath: string,
+  stagedDirectory?: string,
+): Promise<void> {
+  await mkdir(dirname(manifestPath), { recursive: true });
+  const stagingManifest = `${manifestPath}.${process.pid}.tmp`;
+  await writeFile(stagingManifest, serialized);
+
+  if (stagedDirectory === undefined) {
+    try {
+      await rename(stagingManifest, manifestPath);
+    } catch (error) {
+      await rm(stagingManifest, { force: true });
+      throw error;
+    }
+    return;
+  }
+
+  const retiredPages = `${PAGES_DIR}.retired.${process.pid}.${randomUUID()}`;
+  let retired = false;
+  let promoted = false;
+  try {
+    if (existsSync(PAGES_DIR)) {
+      await rename(PAGES_DIR, retiredPages);
+      retired = true;
+    }
+    await rename(stagedDirectory, PAGES_DIR);
+    promoted = true;
+    await rename(stagingManifest, manifestPath);
+  } catch (error) {
+    const rollbackErrors: unknown[] = [];
+    if (promoted) {
+      try {
+        await rename(PAGES_DIR, stagedDirectory);
+      } catch (restoreStagingError) {
+        try {
+          await rm(PAGES_DIR, { recursive: true, force: true });
+        } catch (removePromotedError) {
+          rollbackErrors.push(restoreStagingError, removePromotedError);
+        }
+      }
+    }
+    if (retired) {
+      try {
+        await rename(retiredPages, PAGES_DIR);
+      } catch (restorePagesError) {
+        rollbackErrors.push(restorePagesError);
+      }
+    }
+    try {
+      await rm(stagingManifest, { force: true });
+    } catch (removeManifestError) {
+      rollbackErrors.push(removeManifestError);
+    }
+    if (rollbackErrors.length > 0) {
+      throw new AggregateError([error, ...rollbackErrors], 'publication failed and rollback was incomplete');
+    }
+    throw error;
+  }
+
+  await rm(retiredPages, { recursive: true, force: true }).catch(() => undefined);
 }
 
 /** The single canonical build. Verified in memory, but not yet visible to answering. */
 export async function verifiedManifest(sourcePath: string): Promise<CitationManifest> {
   const extracted = await extractSource(sourcePath);
-  const images = await renderPages(resolveSourcePath(extracted.sourcePath), extracted.pages.length);
+  const { images, directory } = await renderPages(resolveSourcePath(extracted.sourcePath), extracted.pages.length);
 
-  const validated = validateManifest(buildManifest(extracted, images));
-  if (!validated.ok) throw new ManifestTrustError(validated.error.code);
+  try {
+    const validated = validateManifest(buildManifest(extracted, images));
+    if (!validated.ok) throw new ManifestTrustError(validated.error.code);
 
-  const verified = verifyAgainstSource(validated.value, extracted);
-  if (!verified.ok) throw new ManifestTrustError(verified.error.code);
+    const verified = verifyAgainstSource(validated.value, extracted);
+    if (!verified.ok) throw new ManifestTrustError(verified.error.code);
 
-  const withImages = verifyPageImages(verified.value, images);
-  if (!withImages.ok) throw new ManifestTrustError(withImages.error.code);
+    const withImages = verifyPageImages(verified.value, images);
+    if (!withImages.ok) throw new ManifestTrustError(withImages.error.code);
 
-  return withImages.value;
+    stagedPagesByManifest.set(withImages.value, directory);
+    return withImages.value;
+  } catch (error) {
+    stagedDirectories.delete(directory);
+    await rm(directory, { recursive: true, force: true });
+    throw error;
+  }
 }
 
 /** Page renders are not covered by the manifest/PDF cache key, so they are re-checked on every call. */
@@ -152,20 +228,19 @@ export async function publishManifest(
   manifest: CitationManifest,
   manifestPath = MANIFEST_PATH,
 ): Promise<CitationManifest> {
+  const stagedDirectory = stagedPagesByManifest.get(manifest);
   const validated = validateManifest(manifest);
   if (!validated.ok) throw new ManifestTrustError(validated.error.code);
 
   const resolvedSource = resolveSourcePath(validated.value.source.sourcePath);
-  const staged = existsSync(STAGING_PAGES_DIR);
-  const verified = await verifyExtracted(validated.value, resolvedSource, staged ? STAGING_PAGES_DIR : PAGES_DIR);
+  const verified = await verifyExtracted(validated.value, resolvedSource, stagedDirectory ?? PAGES_DIR);
   const serialized = serializeManifest(verified);
 
-  if (staged) await promoteStagedPages();
-
-  await mkdir(dirname(manifestPath), { recursive: true });
-  const staging = `${manifestPath}.${process.pid}.tmp`;
-  await writeFile(staging, serialized);
-  await rename(staging, manifestPath);
+  await commitPublication(serialized, manifestPath, stagedDirectory);
+  if (stagedDirectory !== undefined) {
+    stagedDirectories.delete(stagedDirectory);
+    stagedPagesByManifest.delete(manifest);
+  }
 
   cache.set(manifestPath, {
     manifestDigest: sha256Hex(serialized),

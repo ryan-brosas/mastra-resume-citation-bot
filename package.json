@@ -9,23 +9,24 @@
   "packageManager": "pnpm@11.3.0",
   "scripts": {
     "dev": "MASTRA_HOST=127.0.0.1 mastra dev",
-    "build": "mastra build",
+    "build": "mastra build && node --experimental-strip-types scripts/package-artifact.ts",
     "start": "mastra start",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "typecheck": "tsc --noEmit --project tsconfig.check.json",
     "citations:build": "node --experimental-strip-types src/citations/cli.ts build",
     "citations:verify": "node --experimental-strip-types src/citations/cli.ts verify",
+    "artifact:verify": "node --experimental-strip-types scripts/verify-artifact.ts",
     "ask": "node --experimental-strip-types scripts/ask.ts"
   },
   "dependencies": {
-    "@mastra/core": "1.52.1",
-    "@mastra/libsql": "1.17.0",
+    "@mastra/core": "1.55.0",
+    "@mastra/libsql": "1.18.0",
     "@mastra/loggers": "1.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^25.2.3",
-    "mastra": "1.20.1",
+    "mastra": "1.21.0",
     "typescript": "^5.9.3"
   }
 }

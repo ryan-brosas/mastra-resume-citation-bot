@@ -43,13 +43,26 @@ function context(options: { param?: Record<string, string>; query?: Record<strin
 
 const manifest = await trustedManifest();
 
+test('liveness and readiness report distinct production states', async () => {
+  const health = context();
+  await route('/healthz').handler(health.c);
+  assert.equal(health.captured.status, 200);
+  assert.deepEqual(health.captured.json, { status: 'ok' });
+
+  const ready = context();
+  await route('/readyz').handler(ready.c);
+  assert.equal(ready.captured.status, 200);
+  assert.deepEqual(ready.captured.json, { status: 'ready', version: manifest.source.version });
+});
+
 test('the page shell and its assets are served with the right media types', async () => {
   const shell = context();
   await route('/ask').handler(shell.c);
   assert.equal(shell.captured.status, 200);
   assert.match(shell.captured.html ?? '', /<html/i);
+  assert.match(shell.captured.html ?? '', /<meta name="description" content="[^"]+"/i);
 
-  for (const [file, type] of [['app.css', 'text/css'], ['app.js', 'text/javascript']] as const) {
+  for (const [file, type] of [['app.css', 'text/css'], ['app.js', 'text/javascript'], ['favicon.svg', 'image/svg\\+xml']] as const) {
     const response: Response = await route(`/ask/${file}`).handler(context().c);
     assert.equal(response.status, 200);
     assert.match(response.headers.get('content-type') ?? '', new RegExp(type));
@@ -59,6 +72,8 @@ test('the page shell and its assets are served with the right media types', asyn
 
 test('every public route applies the browser security policy', async () => {
   const responses: readonly [string, Response][] = [
+    ['health', await route('/healthz').handler(context().c)],
+    ['readiness', await route('/readyz').handler(context().c)],
     ['shell', await route('/ask').handler(context().c)],
     ['asset', await route('/ask/app.js').handler(context().c)],
     ['document', await route('/ask/document').handler(context().c)],
@@ -112,6 +127,7 @@ test('a page request bound to a different manifest version is refused', async ()
   const current = context({ param: { page: '1' }, query: { v: manifest.source.version } });
   const response: Response = await route('/ask/page/:page').handler(current.c);
   assert.equal(response.status, 200);
+  assert.equal(response.headers.get('cache-control'), 'public, max-age=31536000, immutable');
 });
 
 test('malformed and non-string questions are refused before any work', async () => {

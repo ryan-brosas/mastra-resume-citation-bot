@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { createServer, type Server } from 'node:http';
-import { homedir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
 import { PROJECT_ROOT } from '../src/citations/manifest.ts';
@@ -32,14 +32,24 @@ const PAYLOAD = {
 
 const TYPES: Record<string, string> = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript' };
 
-type Mode = 'ok' | 'no-document' | 'no-citations' | 'broken-image' | 'flaky' | 'mixed';
+type Mode = 'ok' | 'no-document' | 'no-citations' | 'broken-image' | 'flaky' | 'mixed' | 'slow' | 'overloaded';
 
 const servers: Server[] = [];
 const browsers: ChildProcess[] = [];
+const browserProfiles: string[] = [];
 
 after(async () => {
-  for (const browser of browsers) browser.kill();
+  await Promise.all(browsers.map((browser) => {
+    if (browser.exitCode !== null) return Promise.resolve();
+    return new Promise<void>((done) => {
+      browser.once('exit', () => done());
+      browser.kill();
+    });
+  }));
   await Promise.all(servers.map((instance) => new Promise<void>((done) => instance.close(() => done()))));
+  await Promise.all(browserProfiles.map((profile) =>
+    rm(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 })
+  ));
 });
 
 async function serve(mode: Mode): Promise<string> {
@@ -53,9 +63,9 @@ async function serve(mode: Mode): Promise<string> {
       response.end(await readFile(join(UI, 'index.html')));
       return;
     }
-    for (const file of ['app.css', 'app.js']) {
+    for (const file of ['app.css', 'app.js', 'favicon.svg']) {
       if (path === '/ask/' + file) {
-        response.writeHead(200, { 'content-type': TYPES[file.endsWith('.css') ? '.css' : '.js'] as string });
+        response.writeHead(200, { 'content-type': file.endsWith('.css') ? TYPES['.css'] : file.endsWith('.js') ? TYPES['.js'] : 'image/svg+xml' });
         response.end(await readFile(join(UI, file)));
         return;
       }
@@ -82,6 +92,12 @@ async function serve(mode: Mode): Promise<string> {
     }
     if (path === '/ask/answer') {
       answered += 1;
+      if (mode === 'slow') await new Promise((wait) => setTimeout(wait, 500));
+      if (mode === 'overloaded') {
+        response.writeHead(429, { 'content-type': 'application/json' });
+        response.end(JSON.stringify({ code: 'overloaded' }));
+        return;
+      }
       if (mode === 'flaky' && answered === 1) {
         response.writeHead(503, { 'content-type': 'application/json' });
         response.end(JSON.stringify({ code: 'retrieval_failed' }));
@@ -106,8 +122,10 @@ async function serve(mode: Mode): Promise<string> {
 
 /** Minimal CDP driver: Node ships a WebSocket client, so no browser automation dependency is needed. */
 async function open(url: string) {
+  const profile = await mkdtemp(join(tmpdir(), 'resume-bot-chrome-'));
+  browserProfiles.push(profile);
   const chrome = spawn(CHROME, [
-    '--headless=new', '--remote-debugging-port=0', '--no-sandbox',
+    '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, '--no-sandbox',
     '--disable-gpu', '--disable-dev-shm-usage', '--window-size=1024,900', 'about:blank',
   ], { stdio: ['ignore', 'ignore', 'pipe'] });
   browsers.push(chrome);
@@ -162,7 +180,10 @@ async function open(url: string) {
     await new Promise((wait) => setTimeout(wait, 100));
   }
 
-  return { evaluate };
+  const setViewport = (width: number, height: number) =>
+    send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: true }, sessionId);
+
+  return { evaluate, setViewport };
 }
 
 async function settle(evaluate: (expression: string) => Promise<any>, expression: string) {
@@ -211,6 +232,24 @@ test('an unavailable document disables asking rather than failing on submit', { 
   assert.match(String(await evaluate('document.getElementById("doc").textContent')), /unavailable/i);
 });
 
+test('loading state and composer controls remain accessible on mobile', { skip: !available }, async () => {
+  const { evaluate, setViewport } = await open(await serve('slow'));
+  await setViewport(390, 844);
+  await evaluate('document.getElementById("question").value = "x"; document.getElementById("form").requestSubmit();');
+
+  assert.ok(await settle(evaluate, 'document.querySelector(".thinking") !== null'));
+  assert.equal(await evaluate('document.querySelector(".thinking").getAttribute("role")'), 'status');
+  assert.match(String(await evaluate('document.querySelector(".thinking").textContent')), /searching/i);
+
+  const controls = await evaluate(`(() => {
+    const button = document.getElementById('submit').getBoundingClientRect();
+    document.getElementById('question').focus();
+    return { width: button.width, height: button.height, focus: getComputedStyle(document.querySelector('.composer')).boxShadow };
+  })()`);
+  assert.ok(controls.width >= 44 && controls.height >= 44, `send target was ${controls.width}x${controls.height}`);
+  assert.notEqual(controls.focus, 'none', 'the composer must show a visible focus ring');
+});
+
 test('an answer with no citations says so instead of showing an empty evidence list', { skip: !available }, async () => {
   const { evaluate } = await open(await serve('no-citations'));
   await evaluate('document.getElementById("question").value = "x"; document.getElementById("form").requestSubmit();');
@@ -225,6 +264,15 @@ test('a page image that fails to load reports itself instead of leaving a blank 
   await evaluate('document.getElementById("question").value = "x"; document.getElementById("form").requestSubmit();');
 
   assert.ok(await settle(evaluate, 'document.querySelector(".clip-failed") !== null'), 'the clip must mark itself failed');
+});
+
+test('an overloaded answer remains a controlled retryable failure', { skip: !available }, async () => {
+  const { evaluate } = await open(await serve('overloaded'));
+  await evaluate('document.getElementById("question").value = "x"; document.getElementById("form").requestSubmit();');
+
+  assert.ok(await settle(evaluate, 'document.querySelector(".error") !== null'));
+  assert.match(String(await evaluate('document.querySelector(".error").textContent')), /too many questions/i);
+  assert.equal(await evaluate('document.querySelector(".error button").textContent'), 'Try again');
 });
 
 test('retrying a failed answer reuses its turn instead of repeating the question', { skip: !available }, async () => {

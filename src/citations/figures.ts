@@ -12,13 +12,13 @@ function digitsOf(text: string): string[] {
 }
 
 /**
- * Splits an answer into claims. A claim ends at a sentence boundary or a trailing marker, but never
- * between adjacent markers such as "[1] [2]", which rest on one claim. Both figure grounding and
- * highlight scoping depend on this agreeing, so it is owned here rather than restated.
+ * Splits an answer into claims. A claim ends at a line break, sentence boundary, or trailing marker,
+ * but never between adjacent markers such as "[1] [2]", which rest on one claim. Both figure
+ * grounding and highlight scoping depend on this agreeing, so it is owned here rather than restated.
  */
 export function claims(text: string): string[] {
   return text
-    .split(/(?<=\[\d+\])\s+(?!\[\d+\])|(?<=[.!?])\s+(?!\[\d+\])/)
+    .split(/\r?\n+|(?<=\[\d+\])\s+(?!\[\d+\])|(?<=[.!?])\s+(?!\[\d+\])/)
     .filter((part) => part.trim() !== '');
 }
 

@@ -13,3 +13,7 @@ src/mastra/public/mastra.db
 # Secrets
 .env
 .env.local
+
+# Browser audit profiles must never land in the checkout
+/undefined:/
+/*lighthouse.*/

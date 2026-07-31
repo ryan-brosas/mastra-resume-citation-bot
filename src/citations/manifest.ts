@@ -11,6 +11,7 @@ import {
   citationIdFor,
   documentIdFor,
   normalizeText,
+  normalizedWordBounds,
   sha256Hex,
   versionFor,
 } from './contract.ts';
@@ -49,11 +50,6 @@ function findProjectRoot(): string {
 export const PROJECT_ROOT = findProjectRoot();
 export const MANIFEST_PATH = resolve(PROJECT_ROOT, 'src/citations/generated/manifest.v1.json');
 export const PAGES_DIR = resolve(PROJECT_ROOT, 'src/citations/generated/pages');
-/**
- * Renders land here first; only publication promotes them, so a failed index leaves live pages intact.
- * Scoped to the process so concurrent builds — including parallel test files — cannot share staging.
- */
-export const STAGING_PAGES_DIR = `${PAGES_DIR}.staging.${process.pid}`;
 export const DEFAULT_SOURCE_PATH = resolve(PROJECT_ROOT, 'documents/sample.pdf');
 
 export type PageImage = Readonly<{ page: number; sha256: string; width: number; height: number }>;
@@ -130,22 +126,6 @@ export function mergeRects(rects: readonly NormalizedRect[]): NormalizedRect[] {
   }
 
   return merged;
-}
-
-function normalizeBox(words: readonly WordBox[], page: SourcePage): NormalizedRect {
-  const xMin = Math.min(...words.map((word) => word.xMin));
-  const yMin = Math.min(...words.map((word) => word.yMin));
-  const xMax = Math.max(...words.map((word) => word.xMax));
-  const yMax = Math.max(...words.map((word) => word.yMax));
-
-  const x = Math.min(Math.max(xMin / page.widthPoints, 0), 1);
-  const y = Math.min(Math.max(yMin / page.heightPoints, 0), 1);
-  return {
-    x,
-    y,
-    width: Math.max(Math.min((xMax - xMin) / page.widthPoints, 1 - x), 1e-6),
-    height: Math.max(Math.min((yMax - yMin) / page.heightPoints, 1 - y), 1e-6),
-  };
 }
 
 /** A heading shorter than this is folded into the entry beneath it rather than cited on its own. */
@@ -236,7 +216,7 @@ export function segmentUnits(segment: readonly SourceLine[], page: SourcePage, m
       }
 
       const slice = line.words.slice(start, end);
-      units.push({ text: slice.map((word) => word.text).join(' '), rect: normalizeBox(slice, page) });
+      units.push({ text: slice.map((word) => word.text).join(' '), rect: normalizedWordBounds(slice, page) });
       start = end;
     }
   }
@@ -313,7 +293,7 @@ export function buildManifest(
   maxExcerptChars = MAX_EXCERPT_CHARS,
 ): CitationManifest {
   const documentId = documentIdFor(source.sha256);
-  const version = versionFor(source.sha256);
+  const provisionalVersion = versionFor(source.sha256);
   const pages: PageDigest[] = [];
   const citations: Citation[] = [];
 
@@ -350,7 +330,7 @@ export function buildManifest(
       citations.push({
         id: citationIdFor(documentId, page.page, ordinal),
         documentId,
-        version,
+        version: provisionalVersion,
         page: page.page,
         label: labelFor(excerpt, page.page),
         excerpt,
@@ -358,6 +338,9 @@ export function buildManifest(
       });
     });
   }
+
+  const version = versionFor(source.sha256, citations);
+  const versionedCitations = citations.map((citation) => ({ ...citation, version }));
 
   return {
     schemaVersion: MANIFEST_SCHEMA_VERSION,
@@ -371,6 +354,6 @@ export function buildManifest(
       renderer: { tool: 'poppler', dpi: RENDER_DPI },
       pages,
     },
-    citations,
+    citations: versionedCitations,
   };
 }

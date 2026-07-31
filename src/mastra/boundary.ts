@@ -9,7 +9,7 @@ import { validateAnswerCitations } from '../citations/answer.ts';
 import { claims, groundFigures } from '../citations/figures.ts';
 import { generateAnswer, generateStandaloneQuestion } from './lib/answer-model.ts';
 import { trustedManifest } from '../citations/trust.ts';
-import { type Evidence, retrieveEvidence } from './lib/retrieval.ts';
+import { retrieveEvidence } from './lib/retrieval.ts';
 
 export const MAX_QUESTION_CHARS = 1000;
 /** Enough conversation to resolve a follow-up, bounded so a caller cannot grow the prompt at will. */
@@ -133,22 +133,22 @@ export class AnswerError extends Error {
 }
 
 /** The boundary owns this, not the transport: an injected rewrite must be bounded too. */
-export const REWRITE_DEADLINE_MS = 15000;
+const REWRITE_DEADLINE_MS = 15000;
 
 export type AnswerDeps = Readonly<{
   /** Overridable so a never-settling rewrite can be proven bounded without waiting for the real one. */
   deadlineMs?: number;
   manifest: () => Promise<CitationManifest>;
-  retrieve: (query: string, manifest: CitationManifest) => Promise<readonly Evidence[]>;
+  retrieve: (query: string, manifest: CitationManifest) => Promise<readonly Citation[]>;
   generate: (prompt: string) => Promise<string>;
   standalone: (prompt: string) => Promise<string>;
 }>;
 
 const liveDeps: AnswerDeps = {
-  manifest: () => trustedManifest(),
-  retrieve: (query, manifest) => retrieveEvidence(query, manifest),
-  generate: (prompt) => generateAnswer(prompt),
-  standalone: (prompt) => generateStandaloneQuestion(prompt),
+  manifest: trustedManifest,
+  retrieve: retrieveEvidence,
+  generate: generateAnswer,
+  standalone: generateStandaloneQuestion,
 };
 
 /**
@@ -237,9 +237,9 @@ async function searchQuery(
   return question;
 }
 
-function buildPrompt(question: string, evidence: readonly Evidence[], history: readonly Exchange[]): string {
+function buildPrompt(question: string, evidence: readonly Citation[], history: readonly Exchange[]): string {
   const context = evidence
-    .map(({ citation }) => `[[${citation.id}]] (page ${citation.page}) ${citation.excerpt}`)
+    .map((citation) => `[[${citation.id}]] (page ${citation.page}) ${citation.excerpt}`)
     .join('\n\n');
   const conversation = history.length === 0 ? '' : `Conversation so far:\n${transcript(history)}\n\n`;
 
@@ -272,7 +272,7 @@ export async function answerWithCitations(
 
   const query = await searchQuery(trimmed, history, deps);
 
-  let evidence: readonly Evidence[];
+  let evidence: readonly Citation[];
   try {
     evidence = await deps.retrieve(query, manifest);
   } catch {
@@ -296,25 +296,29 @@ export async function answerWithCitations(
     throw new AnswerError('model_failed');
   }
 
-  const retrievedIds = new Set(evidence.map(({ citation }) => citation.id as string));
+  const retrievedIds = new Set(evidence.map((citation) => citation.id as string));
   const validated = validateAnswerCitations(plainText(generated), manifest, retrievedIds);
 
   const resolved = validated.citations;
-  const { text: grounded, unsupported } = groundFigures(
-    validated.text,
-    (position) => resolved[position - 1]?.excerpt,
+  const groundedClaims = claims(validated.text).map((claim) =>
+    groundFigures(claim, (position) => resolved[position - 1]?.excerpt),
   );
+  const unsupported = [...new Set(groundedClaims.flatMap((grounding) => grounding.unsupported))];
+  const citedText = groundedClaims
+    .map((grounding) => grounding.text)
+    .filter((claim) => /\[\d+\]/.test(claim))
+    .join(' ');
 
   // Grounding can strip a claim's markers, leaving its citation referenced by nothing. Listing it
   // anyway would show evidence for a claim just judged unevidenced, so compact and renumber together.
   const surviving: number[] = [];
-  for (const match of grounded.matchAll(/\[(\d+)\]/g)) {
+  for (const match of citedText.matchAll(/\[(\d+)\]/g)) {
     const position = Number(match[1]);
     if (resolved[position - 1] !== undefined && !surviving.includes(position)) surviving.push(position);
   }
 
   const renumbered = new Map(surviving.map((position, index) => [position, index + 1]));
-  const text = grounded.replace(/\[(\d+)\]/g, (marker, digits: string) => {
+  const text = citedText.replace(/\[(\d+)\]/g, (marker, digits: string) => {
     const next = renumbered.get(Number(digits));
     return next === undefined ? marker : `[${next}]`;
   });
@@ -322,6 +326,16 @@ export async function answerWithCitations(
   const citations = surviving.map((position, index) =>
     answeredCitation(resolved[position - 1] as Citation, claimContext(text, index + 1)),
   );
+  if (citations.length === 0) {
+    return {
+      answer: NO_EVIDENCE_ANSWER,
+      citations: [],
+      pages: [],
+      unsupported,
+      version: manifest.source.version,
+    };
+  }
+
   const cited = new Set(citations.map((citation) => citation.page));
 
   return {

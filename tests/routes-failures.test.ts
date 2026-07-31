@@ -16,6 +16,10 @@ function context(
     header?: Record<string, string>;
     body?: unknown;
     rawBody?: BodyInit;
+    logger?: {
+      info?: (message: string, data?: Record<string, unknown>) => void;
+      warn?: (message: string, data?: Record<string, unknown>) => void;
+    };
   } = {},
 ) {
   const captured: Captured = {};
@@ -23,6 +27,7 @@ function context(
     captured,
     c: {
       header: () => undefined,
+      get: (key: string) => key === 'mastra' && options.logger ? { getLogger: () => options.logger } : undefined,
       body: (body: BodyInit | null, status = 200, headers?: HeadersInit) =>
         new Response(body, { status, headers }),
       html: (body: string) => new Response(body),
@@ -74,6 +79,14 @@ const unavailableManifest = async (): Promise<CitationManifest> => {
   throw new Error('manifest is not trustworthy');
 };
 
+test('readiness fails closed when the trusted manifest is unavailable', async () => {
+  const call = context();
+  await routes({ manifest: unavailableManifest })('/readyz').handler(call.c);
+
+  assert.equal(call.captured.status, 503);
+  assert.deepEqual(call.captured.json, { status: 'unavailable' });
+});
+
 test('an untrusted manifest makes the document summary fail closed', async () => {
   const call = context();
   await routes({ manifest: unavailableManifest })('/ask/document').handler(call.c);
@@ -121,7 +134,7 @@ test('every answer failure maps to its own stable code and status', async () => 
 
   const answerCodes = expected.map(([code]) => code as string);
   for (const code of Object.keys(STATUS)) {
-    if (code === 'payload_too_large') continue; // provoked by the body reader, asserted separately
+    if (code === 'payload_too_large' || code === 'overloaded') continue;
     assert.ok(answerCodes.includes(code), code + ' is in STATUS but never proven over the route');
   }
 
@@ -132,6 +145,39 @@ test('every answer failure maps to its own stable code and status', async () => 
     assert.equal(call.captured.status, status, `${code} must map to ${status}`);
     assert.deepEqual(call.captured.json, { code });
   }
+});
+
+test('answer concurrency is bounded and released after pending work completes', async () => {
+  let started = 0;
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => { release = resolve; });
+  const lookup = routes({
+    answer: async (): Promise<GroundedAnswer> => {
+      started += 1;
+      await gate;
+      return { answer: 'ok', citations: [], pages: [], unsupported: [], version: manifest.source.version };
+    },
+  });
+  const handler = lookup('/ask/answer', 'POST').handler;
+  const pending = Array.from({ length: 4 }, () => handler(context({ body: { question: 'anything' } }).c));
+  while (started < 4) await new Promise((resolve) => setImmediate(resolve));
+
+  const overflow = context({ body: { question: 'anything' } });
+  const overflowRequest = handler(overflow.c);
+  const completedQuickly = await Promise.race([
+    overflowRequest.then(() => true),
+    new Promise<false>((resolve) => setTimeout(() => resolve(false), 100)),
+  ]);
+  release();
+  await Promise.all([...pending, overflowRequest]);
+
+  assert.equal(completedQuickly, true, 'excess work must fail instead of waiting for model capacity');
+  assert.equal(overflow.captured.status, 429);
+  assert.deepEqual(overflow.captured.json, { code: 'overloaded' });
+
+  const recovered = context({ body: { question: 'anything' } });
+  await handler(recovered.c);
+  assert.equal(recovered.captured.status, 200);
 });
 
 test('an unexpected boundary error is reported as model_failed, never raw', async () => {
@@ -146,8 +192,13 @@ test('an unexpected boundary error is reported as model_failed, never raw', asyn
 });
 
 test('a successful answer versions each cited page image', async () => {
-  const call = context({ body: { question: 'anything' } });
-  await routes({
+  const logs: unknown[] = [];
+  const question = 'private question content';
+  const call = context({
+    body: { question },
+    logger: { info: (message, data) => logs.push({ message, data }) },
+  });
+  const response: Response = await routes({
     answer: async (): Promise<GroundedAnswer> => ({
       answer: 'grounded [1]',
       citations: [{ id: 'x', page: 2, label: 'l', excerpt: 'e', quote: 'e', rects: [] }],
@@ -158,7 +209,10 @@ test('a successful answer versions each cited page image', async () => {
   })('/ask/answer', 'POST').handler(call.c);
 
   assert.equal(call.captured.status, 200);
+  assert.match(response.headers.get('x-request-id') ?? '', /^[0-9a-f-]{36}$/);
   assert.equal(call.captured.json.pages[0].image, 'ask/page/2?v=sha256-abc');
+  assert.match(JSON.stringify(logs), /Answer request completed/);
+  assert.doesNotMatch(JSON.stringify(logs), new RegExp(question));
 });
 
 test('caller-supplied history is bounded and sanitised before it reaches the boundary', async () => {

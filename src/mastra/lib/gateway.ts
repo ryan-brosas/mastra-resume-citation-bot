@@ -10,7 +10,15 @@ import {
 export const EMBED_BATCH_SIZE = 96;
 
 /** A hung gateway would otherwise hold a request open indefinitely. */
-export const GATEWAY_TIMEOUT_MS = Number(process.env.OMNIROUTE_TIMEOUT_MS ?? 60000);
+function configuredTimeout(value: string | undefined): number {
+  const timeout = Number(value ?? 60000);
+  if (!Number.isInteger(timeout) || timeout < 1 || timeout > 300000) {
+    throw new Error('OMNIROUTE_TIMEOUT_MS must be an integer from 1 to 300000');
+  }
+  return timeout;
+}
+
+const GATEWAY_TIMEOUT_MS = configuredTimeout(process.env.OMNIROUTE_TIMEOUT_MS);
 
 function headers(): Record<string, string> {
   return {

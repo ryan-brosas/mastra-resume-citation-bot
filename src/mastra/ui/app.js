@@ -32,6 +32,7 @@ addEventListener('resize', reserve);
 
 const FAILURES = {
   invalid_question: ['That question was too long or too short.', 'Keep it under 1000 characters.'],
+  overloaded: ['Too many questions are running.', 'Try again in a moment.'],
   unresolved_followup: ["That follow-up could not be tied to the conversation.", 'Ask it as a full question.'],
   manifest_unavailable: ["The résumé isn't loaded.", 'Rebuild it and try again.'],
   retrieval_failed: ["Couldn't search the résumé just now.", 'Try again in a moment.'],
@@ -91,7 +92,7 @@ function clipFor(citation, page) {
 
   const img = document.createElement('img');
   img.src = page.image;
-  img.alt = 'Page ' + citation.page + ' of the source document';
+  img.alt = '';
   img.loading = 'lazy';
   img.style.width = pct(1 / bw);
   img.style.left = pct(-bx / bw);
@@ -105,7 +106,7 @@ function clipFor(citation, page) {
     hl.style.width = pct(r.width / bw);
     hl.style.top = pct((r.y - by) / bh);
     hl.style.height = pct(r.height / bh);
-    hl.style.animationDelay = (rectIndex * 60) + 'ms';
+    hl.style.animationDelay = (Math.min(rectIndex, 4) * 60) + 'ms';
     clip.append(hl);
 
     if (rectIndex === 0) {
@@ -153,7 +154,7 @@ function answerBody(text, citationCount, turn) {
 function citationCard(citation, label, page, turn, order) {
   const card = el('article', 'cite');
   card.id = 'cite-' + turn + '-' + label;
-  card.style.animationDelay = (order * 70) + 'ms';
+  card.style.animationDelay = (Math.min(order, 4) * 70) + 'ms';
 
   card.dataset.citation = citation.id;
   card.append(el('div', 'cite-head', label + ' · page ' + citation.page));
@@ -223,7 +224,13 @@ function renderFailure(body, code, again) {
 /** Retrying re-runs into the same turn, so a failure never leaves a duplicate question behind. */
 async function run(body, question, turn, anchor, prior) {
   const thinking = el('div', 'thinking');
-  thinking.append(el('span'), el('span'), el('span'));
+  thinking.setAttribute('role', 'status');
+  thinking.append(
+    el('span', 'sr-only', 'Searching the résumé.'),
+    el('span', 'dot'),
+    el('span', 'dot'),
+    el('span', 'dot'),
+  );
   body.replaceChildren(thinking);
   anchorTo(anchor);
 
